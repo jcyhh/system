@@ -1,0 +1,9 @@
+{
+  "name": "notice",
+  "version": "1.0.0",
+  "description": "公告云对象",
+  "main": "index.obj.js",
+  "dependencies": {
+    "uni-id-common": "file:../common/uni-id-common"
+  }
+}

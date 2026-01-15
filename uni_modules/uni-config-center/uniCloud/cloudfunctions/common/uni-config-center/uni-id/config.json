@@ -1,0 +1,14 @@
+{
+  "passwordSecret": "wh5K9mP2xL8nQ4vR7jT3gF6bN1yH0zC5eW8dA2sM7uX4kV9pT6rL3",
+  "tokenSecret": "aB7cD2eF9gH4iJ1kL6mN3oP8qR5sT0uV4wX7yZ2aC5bD8eF1gH6iJ3",
+  "tokenExpiresIn": 7200000,
+  "mp-weixin": {
+    "oauth": {
+      "weixin": {
+        "appid": "wx93f72f4bacc468f4",
+        "appsecret": "6e54ef01b2ca76c2b37fe360774ce7ae"
+      }
+    }
+  }
+}
+

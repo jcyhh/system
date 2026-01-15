@@ -1,0 +1,125 @@
+{
+  "bsonType": "object",
+  "description": "卸货排队登记表",
+  "required": ["driver_name", "phone", "plate_number", "truck_type", "operation_type", "photo", "user_id"],
+  "permission": {
+    "read": "auth.uid != null",
+    "create": "auth.uid != null",
+    "update": "doc.user_id == auth.uid",
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "description": "记录ID"
+    },
+    "user_id": {
+      "bsonType": "string",
+      "description": "用户ID（关联登录用户）",
+      "foreignKey": "uni-id-users._id",
+      "title": "用户ID"
+    },
+    "driver_name": {
+      "bsonType": "string",
+      "description": "司机姓名",
+      "title": "司机姓名",
+      "trim": "both"
+    },
+    "phone": {
+      "bsonType": "string",
+      "description": "手机号",
+      "title": "手机号",
+      "pattern": "^1[3-9]\\d{9}$",
+      "errorMessage": {
+        "pattern": "手机号格式不正确"
+      }
+    },
+    "plate_number": {
+      "bsonType": "string",
+      "description": "车牌号",
+      "title": "车牌号",
+      "trim": "both"
+    },
+    "truck_type": {
+      "bsonType": "string",
+      "description": "车型：依维柯、3.8米、4.2米、7.6米、9.6米、13.5米、17.5米及以上",
+      "title": "车型",
+      "enum": ["依维柯", "3.8米", "4.2米", "7.6米", "9.6米", "13.5米", "17.5米及以上"]
+    },
+    "operation_type": {
+      "bsonType": "int",
+      "description": "操作类型：0-装车，1-卸车",
+      "title": "装卸车",
+      "enum": [0, 1]
+    },
+    "loading_province": {
+      "bsonType": "string",
+      "description": "装货省市区（卸车时必填）",
+      "title": "装货省市区"
+    },
+    "loading_address": {
+      "bsonType": "string",
+      "description": "装货详细地址（卸车时必填）",
+      "title": "装货详细地址",
+      "trim": "both"
+    },
+    "photo": {
+      "bsonType": "string",
+      "description": "水印相机照片URL",
+      "title": "照片"
+    },
+    "arrival_time": {
+      "bsonType": "timestamp",
+      "description": "到达时间",
+      "title": "到达时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "complete_time": {
+      "bsonType": "timestamp",
+      "description": "完成时间（装/卸车完成时间）",
+      "title": "完成时间"
+    },
+    "complete_photo": {
+      "bsonType": "string",
+      "description": "完成照片URL（装/卸车完成照片）",
+      "title": "完成照片"
+    },
+    "status": {
+      "bsonType": "int",
+      "description": "状态：0-排队中，1-处理中，2-已完成",
+      "title": "状态",
+      "defaultValue": 0,
+      "enum": [0, 1, 2]
+    },
+    "queue_number": {
+      "bsonType": "int",
+      "description": "队列号（按登记顺序递增）",
+      "title": "队列号"
+    },
+    "subscribed_tmpls": {
+      "bsonType": "array",
+      "description": "用户订阅的消息模板ID列表",
+      "title": "订阅模板",
+      "items": {
+        "bsonType": "string"
+      }
+    },
+    "create_time": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "title": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "update_time": {
+      "bsonType": "timestamp",
+      "description": "更新时间",
+      "title": "更新时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+}

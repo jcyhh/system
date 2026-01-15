@@ -1,0 +1,103 @@
+{
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+			"path": "pages/tabbar/home",
+			"style": {
+				"navigationBarTitleText": "联康物流",
+				"backgroundColor": "#F7F7F7",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/tabbar/mine",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/home/apply",
+			"style": {
+				"navigationBarTitleText": "填报排队"
+			}
+		},
+		{
+			"path": "pages/mine/dealing",
+			"style": {
+				"navigationBarTitleText": "处理中",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/mine/waiting",
+			"style": {
+				"navigationBarTitleText": "排队中",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/mine/finished",
+			"style": {
+				"navigationBarTitleText": "已完成",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/mine/detail",
+			"style": {
+				"navigationBarTitleText": "详情"
+			}
+		},
+		{
+			"path": "pages/mine/rule",
+			"style": {
+				"navigationBarTitleText": "操作指引"
+			}
+		},
+		{
+			"path": "pages/notice/list",
+			"style": {
+				"navigationBarTitleText": "公告列表",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/notice/detail",
+			"style": {
+				"navigationBarTitleText": "公告详情"
+			}
+		},
+		{
+			"path": "pages/notice/edit",
+			"style": {
+				"navigationBarTitleText": "公告"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "联康物流",
+		"navigationBarBackgroundColor": "#FFFFFF",
+		"backgroundColor": "#F7F7F7"
+	},
+	"tabBar": {
+		"backgroundColor": "#FFFFFF",
+		"selectedColor": "#29156a",
+		"color": "#999999",
+		"list": [
+			{
+				"pagePath": "pages/tabbar/home",
+				"iconPath": "/static/imgs/home.png",
+				"selectedIconPath": "/static/imgs/homeHL.png",
+				"text": "装卸"
+			},
+			{
+				"pagePath": "pages/tabbar/mine",
+				"iconPath": "/static/imgs/mine.png",
+				"selectedIconPath": "/static/imgs/mineHL.png",
+				"text": "我的"
+			}
+		]
+	},
+	"uniIdRouter": {}
+}

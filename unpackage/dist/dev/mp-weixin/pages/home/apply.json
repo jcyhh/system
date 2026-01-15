@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "填报排队",
+  "usingComponents": {
+    "uni-icons": "../../uni_modules/uni-icons/components/uni-icons/uni-icons",
+    "uni-data-picker": "../../uni_modules/uni-data-picker/components/uni-data-picker/uni-data-picker"
+  }
+}

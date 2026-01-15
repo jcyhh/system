@@ -1,0 +1,21 @@
+{
+  "bsonType": "object",
+  "description": "用户表扩展",
+  "properties": {
+    "_id": {
+      "description": "用户ID"
+    },
+    "role": {
+      "bsonType": "int",
+      "description": "用户角色：0-普通用户，1-管理员",
+      "defaultValue": 0,
+      "title": "用户角色"
+    },
+    "read_popup_notices": {
+      "bsonType": "array",
+      "description": "已读的弹窗公告ID列表",
+      "title": "已读弹窗公告"
+    }
+  }
+}
+

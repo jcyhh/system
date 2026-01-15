@@ -1,0 +1,41 @@
+{
+  "pages": [
+    "pages/tabbar/home",
+    "pages/tabbar/mine",
+    "pages/home/apply",
+    "pages/mine/dealing",
+    "pages/mine/waiting",
+    "pages/mine/finished",
+    "pages/mine/detail",
+    "pages/mine/rule",
+    "pages/notice/list",
+    "pages/notice/detail",
+    "pages/notice/edit"
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "联康物流",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "backgroundColor": "#F7F7F7"
+  },
+  "tabBar": {
+    "backgroundColor": "#FFFFFF",
+    "selectedColor": "#29156a",
+    "color": "#999999",
+    "list": [
+      {
+        "pagePath": "pages/tabbar/home",
+        "iconPath": "/static/imgs/home.png",
+        "selectedIconPath": "/static/imgs/homeHL.png",
+        "text": "装卸"
+      },
+      {
+        "pagePath": "pages/tabbar/mine",
+        "iconPath": "/static/imgs/mine.png",
+        "selectedIconPath": "/static/imgs/mineHL.png",
+        "text": "我的"
+      }
+    ]
+  },
+  "usingComponents": {}
+}

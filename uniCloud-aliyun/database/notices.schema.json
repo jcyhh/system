@@ -1,0 +1,62 @@
+{
+  "bsonType": "object",
+  "required": ["title", "content"],
+  "permission": {
+    "read": true,
+    "create": "doc.user_id == auth.uid && auth.role.includes('admin')",
+    "update": "doc.user_id == auth.uid && auth.role.includes('admin')",
+    "delete": "doc.user_id == auth.uid && auth.role.includes('admin')"
+  },
+  "properties": {
+    "_id": {
+      "description": "ID，系统自动生成"
+    },
+    "title": {
+      "bsonType": "string",
+      "label": "公告标题",
+      "description": "公告标题",
+      "title": "公告标题"
+    },
+    "content": {
+      "bsonType": "string",
+      "label": "公告内容",
+      "description": "公告详细内容，支持 HTML 格式或纯文本",
+      "title": "公告内容",
+      "trim": "none"
+    },
+    "user_id": {
+      "bsonType": "string",
+      "label": "发布人ID",
+      "description": "发布公告的管理员ID",
+      "foreignKey": "uni-id-users._id"
+    },
+    "create_time": {
+      "bsonType": "timestamp",
+      "label": "创建时间",
+      "description": "公告发布时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "update_time": {
+      "bsonType": "timestamp",
+      "label": "更新时间",
+      "description": "公告最后更新时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "is_published": {
+      "bsonType": "bool",
+      "label": "是否发布",
+      "description": "是否发布显示",
+      "defaultValue": true
+    },
+    "is_popup": {
+      "bsonType": "bool",
+      "label": "是否弹窗展示",
+      "description": "用户进入首页时是否弹窗展示",
+      "defaultValue": false
+    }
+  }
+}

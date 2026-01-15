@@ -1,0 +1,175 @@
+view,text,input{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+.safeBottom{
+	width: 100%;
+	height: var(--safe-area-inset-bottom);
+	min-height: 30rpx;
+}
+.tl{
+    text-align: left;
+}
+.tc{
+    text-align: center;
+}
+.tr{
+    text-align: right;
+}
+.bold{
+    font-weight: bold;
+}
+.rel{
+    position: relative;
+    z-index: 1;
+}
+.br{
+	word-break: break-all;
+	word-wrap: break-word;
+	line-break: anywhere;
+}
+.noBr{
+    text-wrap: nowrap;
+}
+.border0{
+    border: none !important;
+}
+// flex 布局
+.flex {
+	display: flex;
+}
+.flex0{
+	flex-shrink: 0;
+}
+.col {
+	flex-direction: column;
+}
+.wrap {
+	flex-wrap: wrap;
+}
+.as {
+	align-items: flex-start;
+}
+.ast {
+    align-items: stretch;
+}
+.ae {
+	align-items: flex-end;
+}
+.ac {
+	align-items: center;
+}
+.js {
+	justify-content: flex-start;
+}
+.je {
+	justify-content: flex-end;
+}
+.jc {
+	justify-content: center;
+}
+.jb {
+	justify-content: space-between;
+}
+.ja{
+	justify-content: space-around;
+}
+@for $i from 1 through 5 {
+	.flex#{$i} {
+		flex: $i;
+	}
+}
+@for $i from 1 through 10 {
+	.ani#{$i} {
+		animation-duration: calc($i / 10) + s !important;
+	}
+    .opc#{$i} {
+        opacity: calc($i / 10);
+    }
+    .bold#{$i} {
+        font-weight: calc($i * 100);
+    }
+}
+
+// 文本超出几行转省略号
+@for $i from 1 through 5 {
+	.line#{$i} {
+		@if $i == '1' {
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		} @else {
+			display: -webkit-box!important;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			word-break: break-all;
+			-webkit-line-clamp: $i;
+			-webkit-box-orient: vertical!important;
+		}
+	}
+}
+
+@for $i from 0 through 200 {
+    @if $i % 2 == 0 or $i % 5 == 0 {
+
+        .size#{$i} {
+            font-size: $i + rpx;
+        }
+
+        .img#{$i} {
+            width: $i + rpx;
+            height: $i + rpx;
+        }
+
+        .lh#{$i} {
+            line-height: $i + rpx;
+        }
+
+        @each $short,
+        $long in l left,
+        t top,
+        r right,
+        b bottom {
+            .m#{$short}#{$i} {
+                margin-#{$long}: $i + rpx;
+            }
+
+            .p#{$short}#{$i} {
+                padding-#{$long}: $i + rpx;
+            }
+        }
+    }
+    @if $i % 5 == 0 {
+        .gap#{$i} {
+            width: 100%;
+            height: $i + rpx;
+        }
+    }
+}
+
+.card{
+	padding: 30rpx;
+	border-radius: 20rpx;
+	background-color: #FFFFFF;
+}
+
+.box{
+	height: 88rpx;
+	padding: 0 30rpx;
+	border-radius: 20rpx;
+	background-color: #eeeeee;
+}
+
+.main{
+	color: #29156a;
+}
+.gray{
+	color: #999999;
+}
+.grey{
+	color: #666666;
+}
+.white{
+	color: #FFFFFF;
+}

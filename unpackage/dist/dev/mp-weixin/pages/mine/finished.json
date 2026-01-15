@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "已完成",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "uni-icons": "../../uni_modules/uni-icons/components/uni-icons/uni-icons",
+    "filter": "./Filter",
+    "excel": "./Excel"
+  }
+}
