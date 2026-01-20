@@ -34,6 +34,10 @@ const useAppStore = common_vendor.defineStore("app", () => {
       role.value = savedRole || 0;
     }
   };
+  const setRole = (newRole) => {
+    role.value = newRole;
+    common_vendor.index.setStorageSync("role", newRole);
+  };
   return {
     role,
     isLogin,
@@ -41,7 +45,8 @@ const useAppStore = common_vendor.defineStore("app", () => {
     token,
     setLoginInfo,
     clearLoginInfo,
-    restoreLoginState
+    restoreLoginState,
+    setRole
   };
 });
 exports.useAppStore = useAppStore;

@@ -7,83 +7,83 @@
 		<view class="tc size26 gray mt30" v-if="!detailData">暂无数据～</view>
 		
 		<template v-if="detailData">
-			<view class="card">
-				<view class="flex ac">
-					<view class="line mr20"></view>
-					<view class="size30 bold">用户信息</view>
-				</view>
-				<view class="mt40 flex ac size28">
-					<view class="grey">姓名：</view>
+		<view class="card">
+			<view class="flex ac">
+				<view class="line mr20"></view>
+				<view class="size30 bold">用户信息</view>
+			</view>
+			<view class="mt40 flex ac size28">
+				<view class="grey">姓名：</view>
 					<view class="flex ac" @click="copy(detailData.driver_name)">
 						<view>{{ detailData.driver_name }}</view>
-						<image src="@/static/imgs/copy.png" class="img38 ml10"></image>
-					</view>
+					<image src="@/static/imgs/copy.png" class="img38 ml10"></image>
 				</view>
-				<view class="mt30 flex ac size28">
-					<view class="grey">电话：</view>
+			</view>
+			<view class="mt30 flex ac size28">
+				<view class="grey">电话：</view>
 					<view class="flex ac" @click="copy(detailData.phone)">
 						<view>{{ detailData.phone }}</view>
-						<image src="@/static/imgs/copy.png" class="img38 ml10"></image>
-					</view>
+					<image src="@/static/imgs/copy.png" class="img38 ml10"></image>
 				</view>
-				<view class="mt30 flex ac size28">
-					<view class="grey">装卸车：</view>
+			</view>
+			<view class="mt30 flex ac size28">
+				<view class="grey">装卸车：</view>
 					<view class="flex ac" v-if="detailData.operation_type === 0">
-						<view>装车</view>
-						<image src="/static/imgs/6.png" class="img48 ml10"></image>
-					</view>
-					<view class="flex ac" v-else>
-						<view>卸车</view>
-						<image src="/static/imgs/5.png" class="img48 ml10"></image>
-					</view>
+					<view>装车</view>
+					<image src="/static/imgs/6.png" class="img48 ml10"></image>
+				</view>
+				<view class="flex ac" v-else>
+					<view>卸车</view>
+					<image src="/static/imgs/5.png" class="img48 ml10"></image>
 				</view>
 			</view>
-			
+		</view>
+		
 			<view class="card mt30" v-if="detailData.operation_type === 1 && detailData.loading_province" @click="copy(detailData.loading_province + detailData.loading_address)">
-				<view class="flex jb ac">
-					<view class="flex ac">
-						<view class="line mr20"></view>
-						<view class="size30 bold">装车地点</view>
-					</view>
-					<image src="/static/imgs/copy.png" class="img38"></image>
-				</view>
-				
-				<view class="flex ac mt40">
-					<uni-icons type="location-filled" :size="40"></uni-icons>
-					<view class="ml20">
-						<view class="size30">{{ detailData.loading_province }}</view>
-						<view class="size26 mt10 grey">{{ detailData.loading_address }}</view>
-					</view>
-				</view>
-			</view>
-			
-			<view class="card mt30">
+			<view class="flex jb ac">
 				<view class="flex ac">
 					<view class="line mr20"></view>
-					<view class="size30 bold">车辆信息</view>
+					<view class="size30 bold">装车地点</view>
 				</view>
-				<view class="mt40 flex ac size28">
-					<view class="grey">车牌号：</view>
+				<image src="/static/imgs/copy.png" class="img38"></image>
+			</view>
+			
+			<view class="flex ac mt40">
+				<uni-icons type="location-filled" :size="40"></uni-icons>
+				<view class="ml20">
+						<view class="size30">{{ detailData.loading_province }}</view>
+						<view class="size26 mt10 grey">{{ detailData.loading_address }}</view>
+				</view>
+			</view>
+		</view>
+		
+		<view class="card mt30">
+			<view class="flex ac">
+				<view class="line mr20"></view>
+				<view class="size30 bold">车辆信息</view>
+			</view>
+			<view class="mt40 flex ac size28">
+				<view class="grey">车牌号：</view>
 					<view class="flex ac" @click="copy(detailData.plate_number)">
 						<view>{{ detailData.plate_number }}</view>
-						<image src="@/static/imgs/copy.png" class="img38 ml10"></image>
-					</view>
+					<image src="@/static/imgs/copy.png" class="img38 ml10"></image>
 				</view>
-				<view class="mt30 flex ac size28">
-					<view class="grey">车型：</view>
-					<view class="flex ac">
+			</view>
+			<view class="mt30 flex ac size28">
+				<view class="grey">车型：</view>
+				<view class="flex ac">
 						<view>{{ detailData.truck_type }}</view>
-					</view>
 				</view>
-				<view class="mt30 flex ac size28">
-					<view class="grey">到达时间：</view>
-					<view class="flex ac">
+			</view>
+			<view class="mt30 flex ac size28">
+				<view class="grey">到达时间：</view>
+				<view class="flex ac">
 						<view>{{ formatTime(detailData.create_time) }}</view>
 					</view>
 				</view>
 				<view class="mt30 flex ac size28" v-if="detailData.complete_time">
-					<view class="grey">完成时间：</view>
-					<view class="flex ac">
+				<view class="grey">完成时间：</view>
+				<view class="flex ac">
 						<view>{{ formatTime(detailData.complete_time) }}</view>
 					</view>
 				</view>
@@ -97,19 +97,19 @@
 						}">
 							{{ statusText }}
 						</view>
-					</view>
-				</view>
-				<view class="flex mt40">
-					<view class="flex col jc ac flex1" @click="viewImg(detailData.photo)" v-if="detailData.photo">
-						<image :src="detailData.photo" mode="aspectFill" class="cover"></image>
-						<view class="size24 gray mt10">到达照片</view>
-					</view>
-					<view class="flex col jc ac flex1" @click="viewImg(detailData.complete_photo)" v-if="detailData.complete_photo">
-						<image :src="detailData.complete_photo" mode="aspectFill" class="cover"></image>
-						<view class="size24 gray mt10">完成照片</view>
-					</view>
 				</view>
 			</view>
+			<view class="flex mt40">
+					<view class="flex col jc ac flex1" @click="viewImg(detailData.photo)" v-if="detailData.photo">
+						<image :src="detailData.photo" mode="aspectFill" class="cover"></image>
+					<view class="size24 gray mt10">到达照片</view>
+				</view>
+					<view class="flex col jc ac flex1" @click="viewImg(detailData.complete_photo)" v-if="detailData.complete_photo">
+						<image :src="detailData.complete_photo" mode="aspectFill" class="cover"></image>
+					<view class="size24 gray mt10">完成照片</view>
+				</view>
+			</view>
+		</view>
 		</template>
 		
 	</view>
@@ -194,8 +194,8 @@ onLoad((options: any) => {
 		uni.showToast({
 			title: '缺少ID参数',
 			icon: 'none'
-		})
-	}
+	})
+}
 })
 </script>
 

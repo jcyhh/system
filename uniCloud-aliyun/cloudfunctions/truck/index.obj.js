@@ -2,13 +2,17 @@ const uniID = require('uni-id-common');
 const db = uniCloud.database();
 const dbCmd = db.command;
 
-// 缓存 access_token
-let cachedAccessToken = null;
-let tokenExpireTime = 0;
+// 微信小程序配置
+const WECHAT_APPID = 'wx93f72f4bacc468f4';
+const WECHAT_APPSECRET = '6e54ef01b2ca76c2b37fe360774ce7ae';
 
 // 微信小程序环境配置
 // developer: 开发版 | trial: 体验版 | formal: 正式版
 const MINIPROGRAM_STATE = 'formal';
+
+// 缓存 access_token
+let cachedAccessToken = null;
+let tokenExpireTime = 0;
 
 // 获取微信 access_token（带缓存）
 async function getWxAccessToken() {
@@ -21,21 +25,24 @@ async function getWxAccessToken() {
   }
   
   console.log('🔄 重新获取 access_token');
-  const appid = 'wx93f72f4bacc468f4';
-  const appsecret = '6e54ef01b2ca76c2b37fe360774ce7ae';
   
   try {
-    console.log('⏳ 正在请求微信API...');
+    console.log('⏳ 请求微信API...');
     const tokenRes = await uniCloud.httpclient.request(
-      `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${appid}&secret=${appsecret}`,
-      { 
-        method: 'GET', 
+      'https://api.weixin.qq.com/cgi-bin/token',
+      {
+        method: 'GET',
+        data: {
+          grant_type: 'client_credential',
+          appid: WECHAT_APPID,
+          secret: WECHAT_APPSECRET
+        },
         dataType: 'json',
-        timeout: 15000  // 增加超时时间到15秒
+        timeout: 10000
       }
     );
     
-    console.log('📥 收到微信API响应，状态:', tokenRes.status);
+    console.log('📥 收到微信API响应');
     console.log('响应数据:', JSON.stringify(tokenRes.data, null, 2));
     
     if (tokenRes.status === 200 && tokenRes.data.access_token) {
@@ -43,20 +50,78 @@ async function getWxAccessToken() {
       // 提前5分钟过期，确保不会用到过期的token
       tokenExpireTime = now + (tokenRes.data.expires_in - 300) * 1000;
       console.log('✅ access_token 获取成功，有效期:', tokenRes.data.expires_in, '秒');
-      console.log('Token 前10位:', cachedAccessToken.substring(0, 10) + '...');
       return cachedAccessToken;
     } else {
-      console.error('❌ 获取 access_token 失败');
-      console.error('状态码:', tokenRes.status);
-      console.error('响应数据:', JSON.stringify(tokenRes.data, null, 2));
+      console.error('❌ 获取 access_token 失败:', tokenRes.data);
       return null;
     }
   } catch (err) {
-    console.error('❌❌❌ 请求 access_token 异常');
-    console.error('错误类型:', err.name);
-    console.error('错误消息:', err.message);
-    console.error('错误堆栈:', err.stack);
+    console.error('❌ 请求 access_token 异常:', err.message);
     return null;
+  }
+}
+
+// 统一的发送订阅消息函数
+async function sendSubscribeMsg(params) {
+  const { openid, templateId, data, pagePath = 'pages/tabbar/home' } = params;
+  
+  console.log('========== 开始发送订阅消息 ==========');
+  console.log('OpenID（前10位）:', openid.substring(0, 10) + '...');
+  console.log('模板ID:', templateId);
+  console.log('消息数据:', JSON.stringify(data, null, 2));
+  
+  try {
+    console.log('⏳ 正在获取 access_token...');
+    const accessToken = await getWxAccessToken();
+    if (!accessToken) {
+      console.error('❌ 获取 access_token 失败，终止发送');
+      return { errCode: -1, errMsg: '获取access_token失败' };
+    }
+    console.log('✅ access_token 获取成功');
+    
+    const sendData = {
+      touser: openid,
+      template_id: templateId,
+      page: pagePath,
+      miniprogram_state: MINIPROGRAM_STATE,
+      lang: 'zh_CN',
+      data: data
+    };
+    
+    console.log('🚀 发送订阅消息请求...');
+    console.log('完整请求数据:', JSON.stringify(sendData, null, 2));
+    
+    const sendRes = await uniCloud.httpclient.request(
+      `https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=${accessToken}`,
+      {
+        method: 'POST',
+        data: sendData,
+        dataType: 'json',
+        contentType: 'json',
+        timeout: 10000
+      }
+    );
+    
+    console.log('📥 收到微信响应');
+    console.log('状态码:', sendRes.status);
+    console.log('响应数据:', JSON.stringify(sendRes.data, null, 2));
+    
+    if (sendRes.status === 200 && sendRes.data.errcode === 0) {
+      console.log('✅ 订阅消息发送成功！');
+      console.log('========== 发送流程结束 ==========');
+      return { errCode: 0, errMsg: '发送成功' };
+    } else {
+      console.error('❌ 订阅消息发送失败');
+      console.error('错误码:', sendRes.data.errcode);
+      console.error('错误信息:', sendRes.data.errmsg);
+      console.log('========== 发送流程结束（失败）==========');
+      return { errCode: sendRes.data.errcode, errMsg: sendRes.data.errmsg };
+    }
+  } catch (err) {
+    console.error('❌ 发送订阅消息异常:', err.message);
+    console.error('错误堆栈:', err.stack);
+    console.log('========== 发送流程结束（异常）==========');
+    return { errCode: -1, errMsg: err.message };
   }
 }
 
@@ -148,6 +213,15 @@ module.exports = {
     try {
       const now = Date.now();
       
+      // 🧪 测试：提前预热微信API连接，获取access_token
+      console.log('🔥 提前获取 access_token（预热连接）...');
+      const preAccessToken = await getWxAccessToken();
+      if (preAccessToken) {
+        console.log('✅ access_token 预热成功！');
+      } else {
+        console.error('❌ access_token 预热失败！');
+      }
+      
       // 检查用户是否已有排队中或处理中的单子
       const existingTask = await db.collection('trucks')
         .where({
@@ -212,97 +286,107 @@ module.exports = {
 
       const insertResult = await db.collection('trucks').add(insertData);
       
-      // 发送订阅消息（直接内联调用）- 不阻塞主流程
-      (async () => {
-        try {
-          console.log('========== 开始发送排队到号通知 ==========');
-          
-          // 获取用户openid
-          const userInfo = await db.collection('uni-id-users').doc(this.currentUserId).get();
-          console.log('用户ID:', this.currentUserId);
-          console.log('用户数据:', JSON.stringify(userInfo.data[0], null, 2));
-          
-          if (!userInfo.data[0] || !userInfo.data[0].wx_openid?.mp) {
-            console.log('❌ 用户未绑定微信openid，跳过发送通知');
-            return;
-          }
-          const openid = userInfo.data[0].wx_openid.mp;
-          console.log('✅ 用户openid:', openid);
-          
-          // 检查用户是否订阅了该模板
-          const taskInfo = await db.collection('trucks').doc(insertResult.id).get();
-          const subscribedTmpls = taskInfo.data[0]?.subscribed_tmpls || [];
-          const templateId = '6dmIz67zTI9aE3PJCTrqK48vFvZOctRJDTnzFx0Wj2M';
-          
-          console.log('任务ID:', insertResult.id);
-          console.log('用户订阅的模板列表:', JSON.stringify(subscribedTmpls));
-          console.log('当前要发送的模板ID:', templateId);
-          
-          if (!subscribedTmpls.includes(templateId)) {
-            console.log('❌ 用户未订阅该模板，跳过发送（可能在授权弹窗中点击了拒绝）');
-            return;
-          }
-          console.log('✅ 用户已订阅该模板');
-          
-          // 获取access_token
-          console.log('正在获取access_token...');
-          const accessToken = await getWxAccessToken();
-          console.log('getWxAccessToken 返回值:', accessToken ? '有值' : 'null');
-          
-          if (!accessToken) {
-            console.error('❌❌❌ 获取access_token失败，终止发送流程');
-            return;
-          }
-          console.log('✅ 获取到access_token，继续发送...');
-          
-          // 准备发送的数据（排队到号通知）
-          const sendData = {
-            touser: openid,
-            template_id: templateId,
-            page: 'pages/tabbar/home',
-            data: {
-              car_number22: { value: plate_number },
-              phrase3: { value: status === 1 ? '请就位' : '请等待' }
-            },
-            miniprogram_state: MINIPROGRAM_STATE
-          };
-          console.log('发送数据:', JSON.stringify(sendData, null, 2));
-          
-          // 发送订阅消息
-          console.log('⏳ 开始发送订阅消息...');
-          const sendRes = await uniCloud.httpclient.request(
-            `https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=${accessToken}`,
-            {
-              method: 'POST',
-              data: sendData,
-              dataType: 'json',
-              contentType: 'json',
-              timeout: 10000  // 10秒超时
-            }
-          );
-          
-          console.log('📥 收到微信API响应');
-          console.log('响应状态:', sendRes.status);
-          console.log('响应数据:', JSON.stringify(sendRes.data, null, 2));
-          
-          if (sendRes.status === 200 && sendRes.data.errcode === 0) {
-            console.log('✅✅✅ 订阅消息发送成功！');
-          } else {
-            console.error('❌ 订阅消息发送失败');
-            console.error('错误码:', sendRes.data.errcode);
-            console.error('错误信息:', sendRes.data.errmsg);
-            console.error('常见错误：');
-            console.error('  43101: 用户拒绝接受消息（订阅已失效）');
-            console.error('  40037: 模板ID不存在');
-            console.error('  47003: 模板参数错误');
-            console.error('  41030: page路径不正确');
-          }
-          console.log('========== 发送流程结束 ==========');
-        } catch (err) {
-          console.error('❌ 发送订阅消息异常：', err.message);
-          console.error('错误堆栈:', err.stack);
+      // 发送订阅消息（根据排队位置发送不同通知）
+      try {
+        console.log('📢 准备发送登记通知...');
+        console.log('用户ID:', this.currentUserId);
+        console.log('任务ID:', insertResult.id);
+        console.log('当前状态:', status === 1 ? '处理中' : '排队中');
+        
+        const userInfo = await db.collection('uni-id-users').doc(this.currentUserId).get();
+        if (!userInfo.data[0]?.wx_openid?.mp) {
+          console.log('⚠️ 用户未绑定OpenID，跳过发送');
+          return;
         }
-      })();
+        
+        const openid = userInfo.data[0].wx_openid.mp;
+        const taskInfo = await db.collection('trucks').doc(insertResult.id).get();
+        const subscribedTmpls = taskInfo.data[0]?.subscribed_tmpls || [];
+        
+        // 根据状态发送不同的通知
+        if (status === 1) {
+          // 情况1：直接处理中 → 发送"排队到号通知"
+          const templateId = '6dmIz67zTI9aE3PJCTrqK48vFvZOctRJDTnzFx0Wj2M';
+          console.log('💡 没人排队，直接处理中，发送排队到号通知');
+          
+          if (subscribedTmpls.includes(templateId)) {
+            const res = await sendSubscribeMsg({
+              openid,
+              templateId,
+              data: {
+                car_number22: { value: plate_number },
+                phrase3: { value: '轮到您了，请就位' }
+              }
+            });
+            
+            if (res.errCode === 0) {
+              console.log('✅ 排队到号通知发送成功');
+            } else {
+              console.error('❌ 排队到号通知发送失败:', res.errMsg);
+            }
+          }
+        } else {
+          // status = 0，需要排队，计算排队位置
+          const allWaitingTasks = await db.collection('trucks')
+            .where({ status: 0 })
+            .orderBy('queue_number', 'asc')
+            .get();
+          
+          // 找到当前任务在排队列表中的位置
+          const currentIndex = allWaitingTasks.data.findIndex(t => t._id === insertResult.id);
+          const queuePosition = currentIndex + 1; // 排队位置（1-based）
+          
+          console.log('💡 需要排队，当前排队位置:', queuePosition);
+          
+          if (queuePosition <= 3) {
+            // 情况2：排队位置在前3名 → 发送"排队进度通知"
+            const templateId = 'dKt-GXFHtyyoN_6Ag-ulck-eafezp1bQ6Sz95QCu6nM';
+            console.log('💡 排队位置在前3名，发送排队进度通知');
+            
+            if (subscribedTmpls.includes(templateId)) {
+              const res = await sendSubscribeMsg({
+                openid,
+                templateId,
+                data: {
+                  car_number11: { value: plate_number },
+                  number3: { value: String(queuePosition) }
+                }
+              });
+              
+              if (res.errCode === 0) {
+                console.log('✅ 排队进度通知发送成功');
+              } else {
+                console.error('❌ 排队进度通知发送失败:', res.errMsg);
+              }
+            }
+          } else {
+            // 情况3：排队位置超过3名 → 发送"排队成功提醒"
+            const templateId = '7WbkjjD-w6tc28gX2Gn8-dWCQreta-M-Y5LltkXm3sk';
+            console.log('💡 排队位置超过3名，发送排队成功提醒');
+            
+            if (subscribedTmpls.includes(templateId)) {
+              const res = await sendSubscribeMsg({
+                openid,
+                templateId,
+                data: {
+                  car_number4: { value: plate_number },
+                  number9: { value: String(queuePosition - 1) },  // 前面人数
+                  thing3: { value: '排队成功，请耐心等待' }
+                }
+              });
+              
+              if (res.errCode === 0) {
+                console.log('✅ 排队成功提醒发送成功');
+              } else {
+                console.error('❌ 排队成功提醒发送失败:', res.errMsg);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.error('❌ 发送通知异常：', err.message);
+        console.error('错误堆栈:', err.stack);
+      }
 
       return {
         errCode: 0,
@@ -481,6 +565,15 @@ module.exports = {
     try {
       const now = Date.now();
       
+      // 🔥 预热微信API连接，获取access_token
+      console.log('🔥 complete方法：提前获取 access_token...');
+      const preAccessToken = await getWxAccessToken();
+      if (preAccessToken) {
+        console.log('✅ access_token 预热成功！');
+      } else {
+        console.error('❌ access_token 预热失败（不影响主流程）');
+      }
+      
       // 获取当前记录
       const currentRecord = await db.collection('trucks').doc(id).get();
       
@@ -526,46 +619,36 @@ module.exports = {
           update_time: now
         });
         
-        // 发送"排队成功提醒"给下一个用户（内联逻辑）
-        (async () => {
-          try {
-            const userInfo = await db.collection('uni-id-users').doc(nextTask.user_id).get();
-            if (!userInfo.data[0]?.wx_openid?.mp) return;
+        // 发送"排队到号通知"给下一个用户（同步等待）
+        try {
+          const userInfo = await db.collection('uni-id-users').doc(nextTask.user_id).get();
+          if (userInfo.data[0]?.wx_openid?.mp) {
             const openid = userInfo.data[0].wx_openid.mp;
             
             const taskInfo = await db.collection('trucks').doc(nextTask._id).get();
             const subscribedTmpls = taskInfo.data[0]?.subscribed_tmpls || [];
-            const templateId = '7WbkjjD-w6tc28gX2Gn8-dWCQreta-M-Y5LltkXm3sk';
-            if (!subscribedTmpls.includes(templateId)) return;
+            const templateId = '6dmIz67zTI9aE3PJCTrqK48vFvZOctRJDTnzFx0Wj2M';  // 排队到号通知
             
-            const accessToken = await getWxAccessToken();
-            if (!accessToken) return;
-            
-            await uniCloud.httpclient.request(
-              `https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=${accessToken}`,
-              {
-                method: 'POST',
+            if (subscribedTmpls.includes(templateId)) {
+              const res = await sendSubscribeMsg({
+                openid,
+                templateId,
                 data: {
-                  touser: openid,
-                  template_id: templateId,
-                  page: 'pages/tabbar/home',
-                  data: {
-                    car_number4: { value: nextTask.plate_number },
-                    number9: { value: '0' },
-                    thing3: { value: '轮到您了，请准备' }
-                  },
-                  miniprogram_state: MINIPROGRAM_STATE
-                },
-                dataType: 'json',
-                contentType: 'json',
-                timeout: 10000
+                  car_number22: { value: nextTask.plate_number },
+                  phrase3: { value: '轮到您了，请就位' }
+                }
+              });
+              
+              if (res.errCode === 0) {
+                console.log('✅ 排队到号通知发送成功');
+              } else {
+                console.error('❌ 排队到号通知发送失败:', res.errMsg);
               }
-            );
-            console.log('✅ 排队成功提醒发送成功');
-          } catch (err) {
-            console.error('发送排队成功提醒失败：', err);
+            }
           }
-        })();
+        } catch (err) {
+          console.error('发送排队到号通知失败：', err);
+        }
       }
       
       // 查询所有排队中的单子，通知前面≤3人的用户
@@ -576,51 +659,42 @@ module.exports = {
         .orderBy('queue_number', 'asc')
         .get();
       
-      // 遍历排队中的单子，计算每个单子前面的数量
+      // 遍历排队中的单子，计算每个单子前面的数量，发送"排队进度通知"
       for (let i = 0; i < allWaitingTasks.data.length; i++) {
         const waitingTask = allWaitingTasks.data[i];
         const queuePosition = i + 1; // 前面的数量（不包括处理中的）
         
-        // 如果前面≤3人，发送"排队进度通知"（内联逻辑）
+        // 如果前面≤3人，发送"排队进度通知"（同步等待）
         if (queuePosition <= 3) {
-          (async () => {
-            try {
-              const userInfo = await db.collection('uni-id-users').doc(waitingTask.user_id).get();
-              if (!userInfo.data[0]?.wx_openid?.mp) return;
+          try {
+            const userInfo = await db.collection('uni-id-users').doc(waitingTask.user_id).get();
+            if (userInfo.data[0]?.wx_openid?.mp) {
               const openid = userInfo.data[0].wx_openid.mp;
               
               const taskInfo = await db.collection('trucks').doc(waitingTask._id).get();
               const subscribedTmpls = taskInfo.data[0]?.subscribed_tmpls || [];
               const templateId = 'dKt-GXFHtyyoN_6Ag-ulck-eafezp1bQ6Sz95QCu6nM';
-              if (!subscribedTmpls.includes(templateId)) return;
               
-              const accessToken = await getWxAccessToken();
-              if (!accessToken) return;
-              
-              await uniCloud.httpclient.request(
-                `https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=${accessToken}`,
-                {
-                  method: 'POST',
+              if (subscribedTmpls.includes(templateId)) {
+                const res = await sendSubscribeMsg({
+                  openid,
+                  templateId,
                   data: {
-                    touser: openid,
-                    template_id: templateId,
-                    page: 'pages/tabbar/home',
-                    data: {
-                      car_number11: { value: waitingTask.plate_number },
-                      number3: { value: String(queuePosition) }
-                    },
-                    miniprogram_state: MINIPROGRAM_STATE
-                  },
-                  dataType: 'json',
-                  contentType: 'json',
-                  timeout: 10000
+                    car_number11: { value: waitingTask.plate_number },
+                    number3: { value: String(queuePosition) }
+                  }
+                });
+                
+                if (res.errCode === 0) {
+                  console.log('✅ 排队进度通知发送成功');
+                } else {
+                  console.error('❌ 排队进度通知发送失败:', res.errMsg);
                 }
-              );
-              console.log('✅ 排队进度通知发送成功');
-            } catch (err) {
-              console.error('发送排队进度通知失败：', err);
+              }
             }
-          })();
+          } catch (err) {
+            console.error('发送排队进度通知失败：', err);
+          }
         }
       }
 
@@ -1144,6 +1218,15 @@ module.exports = {
     }
 
     try {
+      // 🔥 预热微信API连接，获取access_token
+      console.log('🔥 adminComplete方法：提前获取 access_token...');
+      const preAccessToken = await getWxAccessToken();
+      if (preAccessToken) {
+        console.log('✅ access_token 预热成功！');
+      } else {
+        console.error('❌ access_token 预热失败（不影响主流程）');
+      }
+      
       // 1. 验证管理员权限
       console.log('管理员确认 - 当前用户ID:', this.currentUserId);
       const userInfo = await db.collection('uni-id-users').doc(this.currentUserId).get();
@@ -1206,45 +1289,36 @@ module.exports = {
           update_time: now
         });
         
-        // 发送"排队成功提醒"给下一个用户（内联逻辑）
-        (async () => {
-          try {
-            const userInfo = await db.collection('uni-id-users').doc(nextTask.user_id).get();
-            if (!userInfo.data[0]?.wx_openid?.mp) return;
+        // 发送"排队到号通知"给下一个用户（同步等待）
+        try {
+          const userInfo = await db.collection('uni-id-users').doc(nextTask.user_id).get();
+          if (userInfo.data[0]?.wx_openid?.mp) {
             const openid = userInfo.data[0].wx_openid.mp;
             
             const taskInfo = await db.collection('trucks').doc(nextTask._id).get();
             const subscribedTmpls = taskInfo.data[0]?.subscribed_tmpls || [];
-            const templateId = '7WbkjjD-w6tc28gX2Gn8-dWCQreta-M-Y5LltkXm3sk';
-            if (!subscribedTmpls.includes(templateId)) return;
+            const templateId = '6dmIz67zTI9aE3PJCTrqK48vFvZOctRJDTnzFx0Wj2M';  // 排队到号通知
             
-            const accessToken = await getWxAccessToken();
-            if (!accessToken) return;
-            
-            await uniCloud.httpclient.request(
-              `https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=${accessToken}`,
-              {
-                method: 'POST',
+            if (subscribedTmpls.includes(templateId)) {
+              const res = await sendSubscribeMsg({
+                openid,
+                templateId,
                 data: {
-                  touser: openid,
-                  template_id: templateId,
-                  page: 'pages/tabbar/home',
-                  data: {
-                    car_number4: { value: nextTask.plate_number },
-                    number9: { value: '0' },
-                    thing3: { value: '轮到您了，请准备' }
-                  },
-                  miniprogram_state: MINIPROGRAM_STATE
-                },
-                dataType: 'json',
-                contentType: 'json'
+                  car_number22: { value: nextTask.plate_number },
+                  phrase3: { value: '轮到您了，请就位' }
+                }
+              });
+              
+              if (res.errCode === 0) {
+                console.log('✅ 排队到号通知发送成功（管理员完成后）');
+              } else {
+                console.error('❌ 排队到号通知发送失败:', res.errMsg);
               }
-            );
-            console.log('✅ 排队成功提醒发送成功（管理员完成后）');
-          } catch (err) {
-            console.error('发送排队成功提醒失败：', err);
+            }
           }
-        })();
+        } catch (err) {
+          console.error('发送排队到号通知失败：', err);
+        }
       }
       
       // 7. 查询所有排队中的单子，通知前面≤3人的用户
@@ -1255,50 +1329,42 @@ module.exports = {
         .orderBy('queue_number', 'asc')
         .get();
       
-      // 遍历排队中的单子，计算每个单子前面的数量
+      // 遍历排队中的单子，计算每个单子前面的数量，发送"排队进度通知"
       for (let i = 0; i < allWaitingTasks.data.length; i++) {
         const waitingTask = allWaitingTasks.data[i];
         const queuePosition = i + 1; // 前面的数量（不包括处理中的）
         
-        // 如果前面≤3人，发送"排队进度通知"（内联逻辑）
+        // 如果前面≤3人，发送"排队进度通知"（同步等待）
         if (queuePosition <= 3) {
-          (async () => {
-            try {
-              const userInfo = await db.collection('uni-id-users').doc(waitingTask.user_id).get();
-              if (!userInfo.data[0]?.wx_openid?.mp) return;
+          try {
+            const userInfo = await db.collection('uni-id-users').doc(waitingTask.user_id).get();
+            if (userInfo.data[0]?.wx_openid?.mp) {
               const openid = userInfo.data[0].wx_openid.mp;
               
               const taskInfo = await db.collection('trucks').doc(waitingTask._id).get();
               const subscribedTmpls = taskInfo.data[0]?.subscribed_tmpls || [];
               const templateId = 'dKt-GXFHtyyoN_6Ag-ulck-eafezp1bQ6Sz95QCu6nM';
-              if (!subscribedTmpls.includes(templateId)) return;
               
-              const accessToken = await getWxAccessToken();
-              if (!accessToken) return;
-              
-              await uniCloud.httpclient.request(
-                `https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=${accessToken}`,
-                {
-                  method: 'POST',
+              if (subscribedTmpls.includes(templateId)) {
+                const res = await sendSubscribeMsg({
+                  openid,
+                  templateId,
                   data: {
-                    touser: openid,
-                    template_id: templateId,
-                    page: 'pages/tabbar/home',
-                    data: {
-                      car_number11: { value: waitingTask.plate_number },
-                      number3: { value: String(queuePosition) }
-                    },
-                    miniprogram_state: MINIPROGRAM_STATE
-                  },
-                  dataType: 'json',
-                  contentType: 'json'
+                    car_number11: { value: waitingTask.plate_number },
+                    number3: { value: String(queuePosition) }
+                  }
+                });
+                
+                if (res.errCode === 0) {
+                  console.log('✅ 排队进度通知发送成功（管理员完成后）');
+                } else {
+                  console.error('❌ 排队进度通知发送失败:', res.errMsg);
                 }
-              );
-              console.log('✅ 排队进度通知发送成功（管理员完成后）');
-            } catch (err) {
-              console.error('发送排队进度通知失败：', err);
+              }
             }
-          })();
+          } catch (err) {
+            console.error('发送排队进度通知失败：', err);
+          }
         }
       }
 

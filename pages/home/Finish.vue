@@ -12,7 +12,7 @@
 				
 				<view class="flex jc">
 					<view class="upload flex jc ac" @click="chooseImage" v-if="!photoUrl">
-						<uni-icons type="plusempty" :size="50" color="#999999"></uni-icons>
+					<uni-icons type="plusempty" :size="50" color="#999999"></uni-icons>
 					</view>
 					<view class="upload rel" v-else>
 						<image :src="photoUrl" mode="aspectFill" class="upload-img"></image>
@@ -136,7 +136,7 @@ const submit = async () => {
 			// 通知首页刷新
 			uni.$emit('refreshHome')
 		} else {
-			uni.showToast({
+	uni.showToast({
 				title: res.errMsg || '操作失败',
 				icon: 'none'
 			})
@@ -164,10 +164,10 @@ defineExpose({
 	padding: 30rpx;
 	background-color: #FFFFFF;
 }
-.upload{
-	width: 400rpx;
-	height: 400rpx;
-	border-radius: 20px;
+	.upload{
+		width: 400rpx;
+		height: 400rpx;
+		border-radius: 20px;
 	background-color: #F7F7F7;
 	overflow: hidden;
 }
@@ -186,14 +186,14 @@ defineExpose({
 	display: flex;
 	align-items: center;
 	justify-content: center;
-}
-.btn{
-	height: 88rpx;
-	border-radius: 44rpx;
-	background-color: $main-color;
-	color: #FFFFFF;
+	}
+	.btn{
+		height: 88rpx;
+		border-radius: 44rpx;
+		background-color: $main-color;
+		color: #FFFFFF;
 	margin-top: 30rpx;
-}
+	}
 .btn.disabled{
 	background-color: #CCCCCC;
 }

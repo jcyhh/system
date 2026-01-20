@@ -48,6 +48,13 @@ export const useAppStore = defineStore('app', () => {
         }
     }
 
+    // 单独设置角色（用于管理员权限变更）
+    const setRole = (newRole: number) => {
+        role.value = newRole
+        // 同步到本地存储
+        uni.setStorageSync('role', newRole)
+    }
+
     return {
         role,
         isLogin,
@@ -55,6 +62,7 @@ export const useAppStore = defineStore('app', () => {
         token,
         setLoginInfo,
         clearLoginInfo,
-        restoreLoginState
+        restoreLoginState,
+        setRole
     }
 })

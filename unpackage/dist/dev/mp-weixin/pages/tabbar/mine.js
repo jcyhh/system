@@ -54,7 +54,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         }
       } catch (e) {
         common_vendor.index.hideLoading();
-        common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:119", "登录失败", e);
+        common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:155", "登录失败", e);
         common_vendor.index.showToast({
           title: "登录失败，请重试",
           icon: "none"
@@ -86,6 +86,129 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         data: userId.value
       });
     };
+    const showDialog = common_vendor.ref(false);
+    const targetUserId = common_vendor.ref("");
+    const showAddAdminDialog = () => {
+      showDialog.value = true;
+      targetUserId.value = "";
+    };
+    const closeDialog = () => {
+      showDialog.value = false;
+      targetUserId.value = "";
+    };
+    const confirmAddAdmin = async () => {
+      const userId2 = targetUserId.value.trim();
+      if (!userId2) {
+        common_vendor.index.showToast({
+          title: "请输入用户ID",
+          icon: "none"
+        });
+        return;
+      }
+      common_vendor.index.showLoading({
+        title: "设置中..."
+      });
+      try {
+        const userObj = common_vendor.tr.importObject("user");
+        const res = await userObj.setUserRole({
+          userId: userId2,
+          role: 1
+          // 1=管理员
+        });
+        common_vendor.index.hideLoading();
+        if (res.errCode === 0) {
+          common_vendor.index.showToast({
+            title: "已添加为管理员",
+            icon: "success"
+          });
+          closeDialog();
+        } else {
+          common_vendor.index.showToast({
+            title: res.errMsg || "设置失败",
+            icon: "none"
+          });
+        }
+      } catch (e) {
+        common_vendor.index.hideLoading();
+        common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:246", "设置管理员失败", e);
+        common_vendor.index.showToast({
+          title: e.message || "设置失败，请重试",
+          icon: "none"
+        });
+      }
+    };
+    const confirmRemoveAdmin = async () => {
+      const targetId = targetUserId.value.trim();
+      if (!targetId) {
+        common_vendor.index.showToast({
+          title: "请输入用户ID",
+          icon: "none"
+        });
+        return;
+      }
+      const isSelf = targetId === userId.value;
+      const confirmContent = isSelf ? "确定要移除自己的管理员权限吗？移除后将无法管理其他用户。" : "确定要移除该用户的管理员权限吗？";
+      common_vendor.index.showModal({
+        title: "确认移除",
+        content: confirmContent,
+        success: async (res) => {
+          if (res.confirm) {
+            common_vendor.index.showLoading({
+              title: "移除中..."
+            });
+            try {
+              const userObj = common_vendor.tr.importObject("user");
+              const result = await userObj.setUserRole({
+                userId: targetId,
+                role: 0
+                // 0=普通用户
+              });
+              common_vendor.index.hideLoading();
+              if (result.errCode === 0) {
+                closeDialog();
+                if (isSelf) {
+                  common_vendor.index.__f__("log", "at pages/tabbar/mine.vue:296", "移除了自己的管理员权限，更新本地状态");
+                  appStore.setRole(0);
+                  common_vendor.index.showToast({
+                    title: "已移除管理员权限，页面已更新",
+                    icon: "success",
+                    duration: 2e3
+                  });
+                  setTimeout(async () => {
+                    try {
+                      const userObj2 = common_vendor.tr.importObject("user");
+                      const userInfo = await userObj2.getUserInfo();
+                      if (userInfo.errCode === 0) {
+                        appStore.setRole(userInfo.data.role);
+                      }
+                    } catch (e) {
+                      common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:315", "刷新用户信息失败", e);
+                    }
+                  }, 500);
+                } else {
+                  common_vendor.index.showToast({
+                    title: "已移除管理员权限",
+                    icon: "success"
+                  });
+                }
+              } else {
+                common_vendor.index.showToast({
+                  title: result.errMsg || "移除失败",
+                  icon: "none"
+                });
+              }
+            } catch (e) {
+              common_vendor.index.hideLoading();
+              common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:332", "移除管理员失败", e);
+              common_vendor.index.showToast({
+                title: e.message || "移除失败，请重试",
+                icon: "none"
+              });
+            }
+          }
+        }
+      });
+    };
     return (_ctx, _cache) => {
       return common_vendor.e({
         a: common_assets._imports_0$2,
@@ -106,20 +229,49 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         m: common_assets._imports_4,
         n: common_vendor.o(($event) => goLog(2))
       } : {}, {
-        o: common_assets._imports_5,
+        o: common_vendor.unref(role) === 1
+      }, common_vendor.unref(role) === 1 ? {
         p: common_vendor.p({
+          type: "personadd",
+          color: "#29156a",
+          size: 22
+        }),
+        q: common_vendor.p({
           type: "right",
           color: "#999999",
           size: 20
         }),
-        q: common_assets._imports_6,
-        r: common_vendor.p({
+        r: common_vendor.o(showAddAdminDialog)
+      } : {}, {
+        s: common_assets._imports_5,
+        t: common_vendor.p({
           type: "right",
           color: "#999999",
           size: 20
         }),
-        s: common_vendor.o(gorule)
-      });
+        v: common_assets._imports_6,
+        w: common_vendor.p({
+          type: "right",
+          color: "#999999",
+          size: 20
+        }),
+        x: common_vendor.o(gorule),
+        y: showDialog.value
+      }, showDialog.value ? {
+        z: common_vendor.p({
+          type: "closeempty",
+          size: 24,
+          color: "#999999"
+        }),
+        A: common_vendor.o(closeDialog),
+        B: targetUserId.value,
+        C: common_vendor.o(($event) => targetUserId.value = $event.detail.value),
+        D: common_vendor.o(confirmRemoveAdmin),
+        E: common_vendor.o(confirmAddAdmin),
+        F: common_vendor.o(() => {
+        }),
+        G: common_vendor.o(closeDialog)
+      } : {});
     };
   }
 });

@@ -5,7 +5,8 @@
   "main": "index.obj.js",
   "dependencies": {
     "xlsx": "^0.18.5",
-    "uni-id-common": "file:../../../uni_modules/uni-id-common/uniCloud/cloudfunctions/common/uni-id-common"
+    "uni-id-common": "file:../../../uni_modules/uni-id-common/uniCloud/cloudfunctions/common/uni-id-common",
+    "uni-subscribemsg": "file:../../../uni_modules/uni-subscribemsg/uniCloud/cloudfunctions/common/uni-subscribemsg"
   },
   "extensions": {
     "uni-cloud-jql": {}

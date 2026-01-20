@@ -128,6 +128,84 @@ module.exports = {
   },
 
   /**
+   * 设置用户角色（仅管理员可调用）
+   * @param {Object} params
+   * @param {String} params.userId 目标用户ID
+   * @param {Number} params.role 角色：0-普通用户，1-管理员
+   */
+  async setUserRole(params) {
+    const { userId, role } = params;
+    
+    if (!userId || role === undefined) {
+      return {
+        errCode: 400,
+        errMsg: '参数不完整'
+      };
+    }
+    
+    try {
+      // 1. 验证当前用户是管理员
+      const uniIdIns = uniID.createInstance({
+        clientInfo: this.getClientInfo()
+      });
+      
+      const payload = await uniIdIns.checkToken(this.getUniIdToken());
+      
+      if (payload.errCode !== 0) {
+        return {
+          errCode: 401,
+          errMsg: '请先登录'
+        };
+      }
+      
+      const currentUserId = payload.uid;
+      const currentUserInfo = await db.collection('uni-id-users')
+        .doc(currentUserId)
+        .field({ role: true })
+        .get();
+      
+      if (currentUserInfo.data.length === 0 || currentUserInfo.data[0].role !== 1) {
+        return {
+          errCode: 403,
+          errMsg: '无权限操作'
+        };
+      }
+      
+      // 2. 检查目标用户是否存在
+      const targetUser = await db.collection('uni-id-users')
+        .doc(userId)
+        .field({ _id: true, role: true })
+        .get();
+      
+      if (targetUser.data.length === 0) {
+        return {
+          errCode: 404,
+          errMsg: '目标用户不存在'
+        };
+      }
+      
+      // 3. 更新目标用户角色
+      await db.collection('uni-id-users').doc(userId).update({
+        role: role
+      });
+      
+      const roleName = role === 1 ? '管理员' : '普通用户';
+      console.log(`用户 ${currentUserId} 将用户 ${userId} 设置为 ${roleName}`);
+      
+      return {
+        errCode: 0,
+        errMsg: `已设置为${roleName}`
+      };
+    } catch (e) {
+      console.error('设置用户角色失败：', e);
+      return {
+        errCode: 500,
+        errMsg: '设置失败：' + e.message
+      };
+    }
+  },
+
+  /**
    * 获取用户信息
    */
   async getUserInfo() {

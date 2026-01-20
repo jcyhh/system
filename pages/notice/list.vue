@@ -141,7 +141,7 @@ const addNotice = () => {
 
 // 编辑公告
 const editNotice = (item: any) => {
-	uni.navigateTo({
+		uni.navigateTo({
 		url: `/pages/notice/edit?id=${item._id}`
 	})
 }

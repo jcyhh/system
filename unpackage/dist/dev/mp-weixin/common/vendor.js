@@ -6501,7 +6501,7 @@ function populateParameters(fromRes, toRes) {
   let _SDKVersion = SDKVersion;
   const hostLanguage = (language || "").replace(/_/g, "-");
   const parameters = {
-    appId: "__UNI__5450E94",
+    appId: "__UNI__DD60F0F",
     appName: "system",
     appVersion: "1.0.0",
     appVersionCode: "100",
@@ -6650,7 +6650,7 @@ const getAppBaseInfo = {
       hostName: _hostName,
       hostSDKVersion: SDKVersion,
       hostTheme: theme,
-      appId: "__UNI__5450E94",
+      appId: "__UNI__DD60F0F",
       appName: "system",
       appVersion: "1.0.0",
       appVersionCode: "100",
@@ -7403,9 +7403,9 @@ function isConsoleWritable() {
   return isWritable;
 }
 function initRuntimeSocketService() {
-  const hosts = "127.0.0.1,192.168.110.24,198.18.0.1";
+  const hosts = "127.0.0.1,192.168.110.24,198.18.0.1,169.254.121.70";
   const port = "8090";
-  const id = "mp-weixin_DM0x-p";
+  const id = "mp-weixin_oScOPA";
   const lazy = typeof swan !== "undefined";
   let restoreError = lazy ? () => {
   } : initOnError();
@@ -8783,10 +8783,10 @@ class S {
 function T(e2) {
   return e2 && "string" == typeof e2 ? JSON.parse(e2) : e2;
 }
-const b = true, E = "mp-weixin", A = T(define_process_env_UNI_SECURE_NETWORK_CONFIG_default), P = E, C = T('{"address":["127.0.0.1","192.168.110.24","198.18.0.1"],"servePort":7002,"debugPort":9001,"initialLaunchType":"remote","skipFiles":["<node_internals>/**","/Applications/HBuilderX.app/Contents/HBuilderX/plugins/unicloud/**/*.js"]}'), O = T('[{"provider":"aliyun","spaceName":"warehouse-system","spaceId":"mp-facb5043-d165-4dab-b4aa-dd6eb2edb78c","clientSecret":"jl40xzJ3/QbSXI4pI4bZ8Q==","endpoint":"https://api.next.bspapp.com"}]') || [];
+const b = true, E = "mp-weixin", A = T(define_process_env_UNI_SECURE_NETWORK_CONFIG_default), P = E, C = T('{"address":["127.0.0.1","192.168.110.24","198.18.0.1","169.254.121.70"],"servePort":7002,"debugPort":9001,"initialLaunchType":"remote","skipFiles":["<node_internals>/**","/Applications/HBuilderX.app/Contents/HBuilderX/plugins/unicloud/**/*.js"]}'), O = T('[{"provider":"aliyun","spaceName":"system","spaceId":"mp-692d873a-b965-422c-8fc6-6f94f4b4d9bf","clientSecret":"aqvHwnn14o15mgnvuHbhXQ==","endpoint":"https://api.next.bspapp.com"}]') || [];
 let N = "";
 try {
-  N = "__UNI__5450E94";
+  N = "__UNI__DD60F0F";
 } catch (e2) {
 }
 let L = {};

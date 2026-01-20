@@ -36,6 +36,16 @@
 		
 		<view class="card">
 			<view class="size28 bold mb20">常用功能</view>
+			
+			<!-- 管理员管理（仅管理员可见） -->
+			<view v-if="role === 1" class="flex jb ac pt30 pb20" @click="showAddAdminDialog">
+				<view class="flex ac">
+					<uni-icons type="personadd" color="#29156a" :size="22"></uni-icons>
+					<view class="size28 ml10">管理员管理</view>
+				</view>
+				<uni-icons type="right" color="#999999" :size="20"></uni-icons>
+			</view>
+			
 			<button open-type="contact" class="btn">
 				<view class="flex jb ac pt30 pb30">
 					<view class="flex ac">
@@ -56,9 +66,35 @@
 		</view>
 	</view>
 	
+	<!-- 管理员管理弹窗 -->
+	<view v-if="showDialog" class="dialog-mask" @click="closeDialog">
+		<view class="dialog-content" @click.stop>
+			<view class="dialog-header">
+				<view class="dialog-title">管理员管理</view>
+				<view class="dialog-close" @click="closeDialog">
+					<uni-icons type="closeempty" :size="24" color="#999999"></uni-icons>
+				</view>
+			</view>
+			<view class="dialog-body">
+				<view class="size26 grey mb20">请输入要操作的用户ID</view>
+				<input 
+					v-model="targetUserId" 
+					class="dialog-input" 
+					placeholder="请输入用户ID"
+					placeholder-style="color: #CCCCCC;"
+				/>
+			</view>
+			<view class="dialog-footer">
+				<view class="dialog-btn remove" @click="confirmRemoveAdmin">移除管理员</view>
+				<view class="dialog-btn confirm" @click="confirmAddAdmin">添加管理员</view>
+			</view>
+		</view>
+	</view>
+	
 </template>
 
 <script lang="ts" setup>
+import { ref } from 'vue'
 import { useAppStore } from '@/store';
 import { storeToRefs } from 'pinia'
 
@@ -151,6 +187,158 @@ const copy = () => {
 		data:userId.value
 	})
 }
+
+// 添加管理员相关
+const showDialog = ref(false)
+const targetUserId = ref('')
+
+// 显示添加管理员弹窗
+const showAddAdminDialog = () => {
+	showDialog.value = true
+	targetUserId.value = ''
+}
+
+// 关闭弹窗
+const closeDialog = () => {
+	showDialog.value = false
+	targetUserId.value = ''
+}
+
+// 确认添加管理员
+const confirmAddAdmin = async () => {
+	const userId = targetUserId.value.trim()
+	
+	if (!userId) {
+		uni.showToast({
+			title: '请输入用户ID',
+			icon: 'none'
+		})
+		return
+	}
+	
+	uni.showLoading({
+		title: '设置中...'
+	})
+	
+	try {
+		const userObj = uniCloud.importObject('user')
+		const res = await userObj.setUserRole({
+			userId: userId,
+			role: 1  // 1=管理员
+		})
+		
+		uni.hideLoading()
+		
+		if (res.errCode === 0) {
+			uni.showToast({
+				title: '已添加为管理员',
+				icon: 'success'
+			})
+			closeDialog()
+		} else {
+			uni.showToast({
+				title: res.errMsg || '设置失败',
+				icon: 'none'
+			})
+		}
+	} catch (e: any) {
+		uni.hideLoading()
+		console.error('设置管理员失败', e)
+		uni.showToast({
+			title: e.message || '设置失败，请重试',
+			icon: 'none'
+		})
+	}
+}
+
+// 确认移除管理员
+const confirmRemoveAdmin = async () => {
+	const targetId = targetUserId.value.trim()
+	
+	if (!targetId) {
+		uni.showToast({
+			title: '请输入用户ID',
+			icon: 'none'
+		})
+		return
+	}
+	
+	// 检查是否移除自己
+	const isSelf = targetId === userId.value
+	const confirmContent = isSelf 
+		? '确定要移除自己的管理员权限吗？移除后将无法管理其他用户。' 
+		: '确定要移除该用户的管理员权限吗？'
+	
+	// 二次确认
+	uni.showModal({
+		title: '确认移除',
+		content: confirmContent,
+		success: async (res) => {
+			if (res.confirm) {
+				uni.showLoading({
+					title: '移除中...'
+				})
+				
+				try {
+					const userObj = uniCloud.importObject('user')
+					const result = await userObj.setUserRole({
+						userId: targetId,
+						role: 0  // 0=普通用户
+					})
+					
+					uni.hideLoading()
+					
+					if (result.errCode === 0) {
+						closeDialog()
+						
+						// 如果移除的是自己，立即更新本地权限
+						if (isSelf) {
+							console.log('移除了自己的管理员权限，更新本地状态')
+							// 更新 store 中的角色
+							appStore.setRole(0)
+							
+							uni.showToast({
+								title: '已移除管理员权限，页面已更新',
+								icon: 'success',
+								duration: 2000
+							})
+							
+							// 可选：重新获取用户信息确保同步
+							setTimeout(async () => {
+								try {
+									const userObj = uniCloud.importObject('user')
+									const userInfo = await userObj.getUserInfo()
+									if (userInfo.errCode === 0) {
+										appStore.setRole(userInfo.data.role)
+									}
+								} catch (e) {
+									console.error('刷新用户信息失败', e)
+								}
+							}, 500)
+						} else {
+							uni.showToast({
+								title: '已移除管理员权限',
+								icon: 'success'
+							})
+						}
+					} else {
+						uni.showToast({
+							title: result.errMsg || '移除失败',
+							icon: 'none'
+						})
+					}
+				} catch (e: any) {
+					uni.hideLoading()
+					console.error('移除管理员失败', e)
+					uni.showToast({
+						title: e.message || '移除失败，请重试',
+						icon: 'none'
+					})
+				}
+			}
+		}
+	})
+}
 </script>
 
 <style lang="scss" scoped>
@@ -176,5 +364,93 @@ const copy = () => {
 }
 .btn::after{
 	display: none;
+}
+
+/* 弹窗样式 */
+.dialog-mask {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background-color: rgba(0, 0, 0, 0.5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 9999;
+}
+
+.dialog-content {
+	width: 600rpx;
+	background-color: #FFFFFF;
+	border-radius: 24rpx;
+	overflow: hidden;
+}
+
+.dialog-header {
+	position: relative;
+	padding: 40rpx 30rpx 30rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.dialog-title {
+	font-size: 32rpx;
+	font-weight: bold;
+	text-align: center;
+	color: #333333;
+}
+
+.dialog-close {
+	position: absolute;
+	right: 20rpx;
+	top: 50%;
+	transform: translateY(-50%);
+	padding: 10rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.dialog-body {
+	padding: 0 30rpx 40rpx;
+}
+
+.dialog-input {
+	width: 100%;
+	height: 80rpx;
+	padding: 0 20rpx;
+	border: 2rpx solid #EEEEEE;
+	border-radius: 12rpx;
+	font-size: 28rpx;
+	color: #333333;
+	box-sizing: border-box;
+}
+
+.dialog-footer {
+	display: flex;
+	border-top: 2rpx solid #EEEEEE;
+}
+
+.dialog-btn {
+	flex: 1;
+	height: 100rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 30rpx;
+	color: #333333;
+}
+
+.dialog-btn.remove {
+	border-right: 2rpx solid #EEEEEE;
+	color: #FF3B30;
+	font-weight: 500;
+}
+
+.dialog-btn.confirm {
+	color: #29156a;
+	font-weight: bold;
 }
 </style>
