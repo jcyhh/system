@@ -181,21 +181,38 @@ const myQueueNumber = computed(() => {
 	return index !== -1 ? index + 1 : 0
 })
 
-// 预计等待时间（暂时写死）
+// 根据车型获取预计使用时间（分钟）
+const getTruckTime = (truckType: string) => {
+	if (truckType === '依维柯') {
+		return 10
+	} else if (['3.8米', '4.2米', '7.6米', '9.6米'].includes(truckType)) {
+		return 30
+	} else {
+		// 13.5米、17.5米及以上
+		return 60
+	}
+}
+
+// 预计等待时间（根据前方排队车型估算）
 const estimatedWaitTime = computed(() => {
 	if (!currentTask.value || currentTask.value.status === 1) return ''
 	
-	// 计算前面有几个单子（包括处理中的）
+	// 找到自己在队列中的位置
 	const myIndex = queueList.value.findIndex(item => item._id === currentTask.value._id)
 	if (myIndex <= 0) return '即将开始'
 	
-	// 假设每单平均30分钟，这里可以后续优化算法
-	const waitMinutes = myIndex * 30
-	const hours = Math.floor(waitMinutes / 60)
-	const minutes = waitMinutes % 60
+	// 累加前方所有车辆的预计时间
+	let totalMinutes = 0
+	for (let i = 0; i < myIndex; i++) {
+		const truck = queueList.value[i]
+		totalMinutes += getTruckTime(truck.truck_type)
+	}
+	
+	const hours = Math.floor(totalMinutes / 60)
+	const minutes = totalMinutes % 60
 	
 	if (hours > 0) {
-		return `${hours}小时${minutes}分钟`
+		return minutes > 0 ? `${hours}小时${minutes}分钟` : `${hours}小时`
 	} else {
 		return `${minutes}分钟`
 	}

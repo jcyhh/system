@@ -72,17 +72,30 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
       const index = queueList.value.findIndex((item) => item._id === currentTask.value._id);
       return index !== -1 ? index + 1 : 0;
     });
+    const getTruckTime = (truckType) => {
+      if (truckType === "依维柯") {
+        return 10;
+      } else if (["3.8米", "4.2米", "7.6米", "9.6米"].includes(truckType)) {
+        return 30;
+      } else {
+        return 60;
+      }
+    };
     const estimatedWaitTime = common_vendor.computed(() => {
       if (!currentTask.value || currentTask.value.status === 1)
         return "";
       const myIndex = queueList.value.findIndex((item) => item._id === currentTask.value._id);
       if (myIndex <= 0)
         return "即将开始";
-      const waitMinutes = myIndex * 30;
-      const hours = Math.floor(waitMinutes / 60);
-      const minutes = waitMinutes % 60;
+      let totalMinutes = 0;
+      for (let i = 0; i < myIndex; i++) {
+        const truck = queueList.value[i];
+        totalMinutes += getTruckTime(truck.truck_type);
+      }
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
       if (hours > 0) {
-        return `${hours}小时${minutes}分钟`;
+        return minutes > 0 ? `${hours}小时${minutes}分钟` : `${hours}小时`;
       } else {
         return `${minutes}分钟`;
       }
@@ -101,7 +114,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           currentTask.value = null;
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/tabbar/home.vue:223", "查询失败：", e);
+        common_vendor.index.__f__("error", "at pages/tabbar/home.vue:240", "查询失败：", e);
         currentTask.value = null;
       }
     };
@@ -138,7 +151,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           }
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/tabbar/home.vue:272", "获取列表失败：", e);
+        common_vendor.index.__f__("error", "at pages/tabbar/home.vue:289", "获取列表失败：", e);
       } finally {
         isLoading.value = false;
       }
@@ -172,7 +185,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           icon: "success"
         });
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/tabbar/home.vue:318", "刷新失败：", e);
+        common_vendor.index.__f__("error", "at pages/tabbar/home.vue:335", "刷新失败：", e);
       } finally {
         common_vendor.index.stopPullDownRefresh();
       }

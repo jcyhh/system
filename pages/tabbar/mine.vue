@@ -139,9 +139,9 @@ const handleLogin = async () => {
 			// 保存登录信息和角色
 			appStore.setLoginInfo(res.data.userInfo, res.data.token)
 			
-			const roleName = res.data.userInfo.role === 1 ? '管理员' : '普通用户'
+			const roleName = res.data.userInfo.role === 1 ? '(管理员)' : ''
 			uni.showToast({
-				title: `登录成功 (${roleName})`,
+				title: `登录成功${roleName}`,
 				icon: 'success'
 			})
 		} else {

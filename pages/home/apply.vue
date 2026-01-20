@@ -16,13 +16,13 @@
 			<input type="text" v-model="formData.plate_number" placeholder="请输入车牌号" class="flex1 size28" />
 		</view>
 		
-		<view class="size30 mb20 mt30">车型</view>
-		<picker @change="typesChange" :value="typeCur" :range="types">
-			<view class="card flex jb ac">
-				<view class="size28">{{types[typeCur]}}</view>
-				<uni-icons type="down" :size="20" color="#999999"></uni-icons>
-			</view>
-		</picker>
+	<view class="size30 mb20 mt30">车型</view>
+	<picker @change="typesChange" :value="typeCur" :range="types">
+		<view class="card flex jb ac">
+			<view class="size28">{{types[typeCur]}}</view>
+			<uni-icons type="down" :size="20" color="#999999"></uni-icons>
+		</view>
+	</picker>
 		
 		<view class="size30 mb20 mt30">装卸车</view>
 		<view class="flex ac">
