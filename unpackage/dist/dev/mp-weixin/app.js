@@ -15,6 +15,9 @@ if (!Math) {
   "./pages/notice/list.js";
   "./pages/notice/detail.js";
   "./pages/notice/edit.js";
+  "./pages/home/user.js";
+  "./pages/home/private.js";
+  "./pages/mine/system.js";
 }
 const _sfc_main = {
   onLaunch: function() {

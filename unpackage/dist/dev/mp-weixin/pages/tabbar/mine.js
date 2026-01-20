@@ -54,12 +54,17 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         }
       } catch (e) {
         common_vendor.index.hideLoading();
-        common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:155", "登录失败", e);
+        common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:163", "登录失败", e);
         common_vendor.index.showToast({
           title: "登录失败，请重试",
           icon: "none"
         });
       }
+    };
+    const goSystem = () => {
+      common_vendor.index.navigateTo({
+        url: "/pages/mine/system"
+      });
     };
     const goLog = (type) => {
       if (type == 0) {
@@ -130,7 +135,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         }
       } catch (e) {
         common_vendor.index.hideLoading();
-        common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:246", "设置管理员失败", e);
+        common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:260", "设置管理员失败", e);
         common_vendor.index.showToast({
           title: e.message || "设置失败，请重试",
           icon: "none"
@@ -167,7 +172,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
               if (result.errCode === 0) {
                 closeDialog();
                 if (isSelf) {
-                  common_vendor.index.__f__("log", "at pages/tabbar/mine.vue:296", "移除了自己的管理员权限，更新本地状态");
+                  common_vendor.index.__f__("log", "at pages/tabbar/mine.vue:310", "移除了自己的管理员权限，更新本地状态");
                   appStore.setRole(0);
                   common_vendor.index.showToast({
                     title: "已移除管理员权限，页面已更新",
@@ -182,7 +187,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
                         appStore.setRole(userInfo.data.role);
                       }
                     } catch (e) {
-                      common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:315", "刷新用户信息失败", e);
+                      common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:329", "刷新用户信息失败", e);
                     }
                   }, 500);
                 } else {
@@ -199,7 +204,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
               }
             } catch (e) {
               common_vendor.index.hideLoading();
-              common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:332", "移除管理员失败", e);
+              common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:346", "移除管理员失败", e);
               common_vendor.index.showToast({
                 title: e.message || "移除失败，请重试",
                 icon: "none"
@@ -243,34 +248,48 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         }),
         r: common_vendor.o(showAddAdminDialog)
       } : {}, {
-        s: common_assets._imports_5,
+        s: common_vendor.unref(role) === 1
+      }, common_vendor.unref(role) === 1 ? {
         t: common_vendor.p({
+          type: "settings",
+          color: "#29156a",
+          size: 22
+        }),
+        v: common_vendor.p({
           type: "right",
           color: "#999999",
           size: 20
         }),
-        v: common_assets._imports_6,
-        w: common_vendor.p({
+        w: common_vendor.o(goSystem)
+      } : {}, {
+        x: common_assets._imports_5,
+        y: common_vendor.p({
           type: "right",
           color: "#999999",
           size: 20
         }),
-        x: common_vendor.o(gorule),
-        y: showDialog.value
+        z: common_assets._imports_6,
+        A: common_vendor.p({
+          type: "right",
+          color: "#999999",
+          size: 20
+        }),
+        B: common_vendor.o(gorule),
+        C: showDialog.value
       }, showDialog.value ? {
-        z: common_vendor.p({
+        D: common_vendor.p({
           type: "closeempty",
           size: 24,
           color: "#999999"
         }),
-        A: common_vendor.o(closeDialog),
-        B: targetUserId.value,
-        C: common_vendor.o(($event) => targetUserId.value = $event.detail.value),
-        D: common_vendor.o(confirmRemoveAdmin),
-        E: common_vendor.o(confirmAddAdmin),
-        F: common_vendor.o(() => {
+        E: common_vendor.o(closeDialog),
+        F: targetUserId.value,
+        G: common_vendor.o(($event) => targetUserId.value = $event.detail.value),
+        H: common_vendor.o(confirmRemoveAdmin),
+        I: common_vendor.o(confirmAddAdmin),
+        J: common_vendor.o(() => {
         }),
-        G: common_vendor.o(closeDialog)
+        K: common_vendor.o(closeDialog)
       } : {});
     };
   }

@@ -1,0 +1,56 @@
+{
+  "bsonType": "object",
+  "required": ["key", "title", "content"],
+  "permission": {
+    "read": true,
+    "create": "auth.role.includes('admin')",
+    "update": "auth.role.includes('admin')",
+    "delete": "auth.role.includes('admin')"
+  },
+  "properties": {
+    "_id": {
+      "description": "ID,系统自动生成"
+    },
+    "key": {
+      "bsonType": "string",
+      "label": "标识Key",
+      "description": "唯一标识，如：user_agreement、privacy_policy",
+      "title": "标识Key"
+    },
+    "title": {
+      "bsonType": "string",
+      "label": "标题",
+      "description": "协议标题",
+      "title": "标题"
+    },
+    "content": {
+      "bsonType": "string",
+      "label": "内容",
+      "description": "协议内容，支持 HTML 格式或纯文本",
+      "title": "内容",
+      "trim": "none"
+    },
+    "create_time": {
+      "bsonType": "timestamp",
+      "label": "创建时间",
+      "description": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "update_time": {
+      "bsonType": "timestamp",
+      "label": "更新时间",
+      "description": "最后更新时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "is_published": {
+      "bsonType": "bool",
+      "label": "是否发布",
+      "description": "是否发布显示",
+      "defaultValue": true
+    }
+  }
+}

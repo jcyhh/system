@@ -1,0 +1,1 @@
+<view class="page data-v-e13bad76"><view wx:if="{{a}}" class="content data-v-e13bad76"><view class="title size36 bold mb30 data-v-e13bad76">{{b}}</view><rich-text nodes="{{c}}" class="rich-content data-v-e13bad76"></rich-text></view><view wx:else class="empty data-v-e13bad76"><text class="gray data-v-e13bad76">内容加载中...</text></view></view>

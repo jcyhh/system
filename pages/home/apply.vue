@@ -63,7 +63,18 @@
 			</view>
 		</view>
 		
-		<view class="mt100 btn flex jc ac" @click="submit">{{ isEditMode ? '保存修改' : '提交排队' }}</view>
+		<view class="flex jc mt100">
+			<view class="flex ac size26" @click="checked = !checked">
+				<uni-icons type="checkbox-filled" v-if="checked"></uni-icons>
+				<uni-icons type="circle" v-else></uni-icons>
+				<text>我已阅读并同意</text>
+				<text class="main" @click.stop="goUser">《用户协议》</text>
+				<text>和</text>
+				<text class="main" @click.stop="goPrivate">《隐私政策》</text>
+			</view>
+		</view>
+		
+		<view class="mt30 btn flex jc ac" @click="submit">{{ isEditMode ? '保存修改' : '提交排队' }}</view>
 		
 		<view class="safeBottom"></view>
 	</view>
@@ -83,6 +94,8 @@ import { useAppStore } from '@/store';
 
 const appStore = useAppStore()
 
+const checked = ref(false)
+
 const typeCur = ref(0)
 const types = [
 	'依维柯',
@@ -96,6 +109,17 @@ const types = [
 const typesChange = (e:any) => {
 	typeCur.value = e.detail.value
 	formData.value.truck_type = types[e.detail.value]
+}
+
+const goPrivate = () => {
+	uni.navigateTo({
+		url:"/pages/home/private"
+	})
+}
+const goUser = () => {
+	uni.navigateTo({
+		url:"/pages/home/user"
+	})
 }
 
 const cityRef = ref()
@@ -247,6 +271,14 @@ const deleteImage = () => {
 
 // 表单验证
 const validate = () => {
+	if (!checked.value) {
+		uni.showToast({
+			title: '请先阅读并同意用户协议和隐私政策',
+			icon: 'none'
+		})
+		return false
+	}
+	
 	if (!formData.value.driver_name) {
 		uni.showToast({
 			title: '请输入姓名',
@@ -353,6 +385,31 @@ const requestSubscribe = () => {
 	})
 }
 
+// 检查排队开关
+const checkQueueSwitch = async () => {
+	try {
+		const db = uniCloud.database()
+		const res = await db.collection('system_info')
+			.where({
+				key: 'queue_switch',
+				is_published: true
+			})
+			.limit(1)
+			.get()
+		
+		if (res.result && res.result.data && res.result.data.length > 0) {
+			const switchData = res.result.data[0]
+			return switchData.content === 'true'
+		}
+		// 如果没有配置，默认允许排队
+		return true
+	} catch (e) {
+		console.error('检查排队开关失败：', e)
+		// 出错时默认允许排队
+		return true
+	}
+}
+
 // 提交表单
 const submit = async () => {
 	// 检查登录状态
@@ -369,6 +426,19 @@ const submit = async () => {
 			}
 		})
 		return
+	}
+	
+	// 检查排队开关（编辑模式不检查）
+	if (!isEditMode.value) {
+		const switchOn = await checkQueueSwitch()
+		if (!switchOn) {
+			uni.showModal({
+				title: '提示',
+				content: '当前平台暂停排队服务，请稍后再试',
+				showCancel: false
+			})
+			return
+		}
 	}
 	
 	// 验证表单

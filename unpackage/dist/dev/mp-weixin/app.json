@@ -10,7 +10,10 @@
     "pages/mine/rule",
     "pages/notice/list",
     "pages/notice/detail",
-    "pages/notice/edit"
+    "pages/notice/edit",
+    "pages/home/user",
+    "pages/home/private",
+    "pages/mine/system"
   ],
   "window": {
     "navigationBarTextStyle": "black",

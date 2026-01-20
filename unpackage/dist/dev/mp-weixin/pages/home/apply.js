@@ -16,6 +16,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
   __name: "apply",
   setup(__props) {
     const appStore = store_modules_app.useAppStore();
+    const checked = common_vendor.ref(false);
     const typeCur = common_vendor.ref(0);
     const types = [
       "依维柯",
@@ -29,6 +30,16 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
     const typesChange = (e) => {
       typeCur.value = e.detail.value;
       formData.value.truck_type = types[e.detail.value];
+    };
+    const goPrivate = () => {
+      common_vendor.index.navigateTo({
+        url: "/pages/home/private"
+      });
+    };
+    const goUser = () => {
+      common_vendor.index.navigateTo({
+        url: "/pages/home/user"
+      });
     };
     const cityRef = common_vendor.ref();
     const citys = common_vendor.ref([]);
@@ -93,7 +104,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           resetForm();
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/home/apply.vue:179", "查询失败：", e);
+        common_vendor.index.__f__("error", "at pages/home/apply.vue:203", "查询失败：", e);
       }
     };
     const resetForm = () => {
@@ -140,7 +151,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
               title: "上传失败",
               icon: "none"
             });
-            common_vendor.index.__f__("error", "at pages/home/apply.vue:237", "上传失败：", e);
+            common_vendor.index.__f__("error", "at pages/home/apply.vue:261", "上传失败：", e);
           }
         }
       });
@@ -149,6 +160,13 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
       formData.value.photo = "";
     };
     const validate = () => {
+      if (!checked.value) {
+        common_vendor.index.showToast({
+          title: "请先阅读并同意用户协议和隐私政策",
+          icon: "none"
+        });
+        return false;
+      }
       if (!formData.value.driver_name) {
         common_vendor.index.showToast({
           title: "请输入姓名",
@@ -222,7 +240,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         common_vendor.index.requestSubscribeMessage({
           tmplIds,
           success: (res) => {
-            common_vendor.index.__f__("log", "at pages/home/apply.vue:333", "订阅消息授权结果：", res);
+            common_vendor.index.__f__("log", "at pages/home/apply.vue:365", "订阅消息授权结果：", res);
             const acceptedTmpls = [];
             tmplIds.forEach((id) => {
               if (res[id] === "accept") {
@@ -232,11 +250,28 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
             resolve(acceptedTmpls);
           },
           fail: (err) => {
-            common_vendor.index.__f__("log", "at pages/home/apply.vue:344", "订阅消息授权失败：", err);
+            common_vendor.index.__f__("log", "at pages/home/apply.vue:376", "订阅消息授权失败：", err);
             resolve([]);
           }
         });
       });
+    };
+    const checkQueueSwitch = async () => {
+      try {
+        const db = common_vendor.tr.database();
+        const res = await db.collection("system_info").where({
+          key: "queue_switch",
+          is_published: true
+        }).limit(1).get();
+        if (res.result && res.result.data && res.result.data.length > 0) {
+          const switchData = res.result.data[0];
+          return switchData.content === "true";
+        }
+        return true;
+      } catch (e) {
+        common_vendor.index.__f__("error", "at pages/home/apply.vue:407", "检查排队开关失败：", e);
+        return true;
+      }
     };
     const submit = async () => {
       if (!appStore.isLogin) {
@@ -252,6 +287,17 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           }
         });
         return;
+      }
+      if (!isEditMode.value) {
+        const switchOn = await checkQueueSwitch();
+        if (!switchOn) {
+          common_vendor.index.showModal({
+            title: "提示",
+            content: "当前平台暂停排队服务，请稍后再试",
+            showCancel: false
+          });
+          return;
+        }
       }
       if (!validate()) {
         return;
@@ -318,7 +364,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           title: e.message || "提交失败",
           icon: "none"
         });
-        common_vendor.index.__f__("error", "at pages/home/apply.vue:449", "提交失败：", e);
+        common_vendor.index.__f__("error", "at pages/home/apply.vue:519", "提交失败：", e);
       }
     };
     return (_ctx, _cache) => {
@@ -405,13 +451,26 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         }),
         I: common_vendor.o(deleteImage)
       }, {
-        J: common_vendor.t(isEditMode.value ? "保存修改" : "提交排队"),
-        K: common_vendor.o(submit),
-        L: common_vendor.sr(cityRef, "5fa7e9e6-8", {
+        J: checked.value
+      }, checked.value ? {
+        K: common_vendor.p({
+          type: "checkbox-filled"
+        })
+      } : {
+        L: common_vendor.p({
+          type: "circle"
+        })
+      }, {
+        M: common_vendor.o(goUser),
+        N: common_vendor.o(goPrivate),
+        O: common_vendor.o(($event) => checked.value = !checked.value),
+        P: common_vendor.t(isEditMode.value ? "保存修改" : "提交排队"),
+        Q: common_vendor.o(submit),
+        R: common_vendor.sr(cityRef, "5fa7e9e6-10", {
           "k": "cityRef"
         }),
-        M: common_vendor.o(onchange),
-        N: common_vendor.p({
+        S: common_vendor.o(onchange),
+        T: common_vendor.p({
           placeholder: "请选择地址",
           ["popup-title"]: "请选择城市",
           collection: "opendb-city-china",
