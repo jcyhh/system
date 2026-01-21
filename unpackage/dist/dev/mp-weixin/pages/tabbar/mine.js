@@ -11,9 +11,15 @@ const _easycom_uni_icons = () => "../../uni_modules/uni-icons/components/uni-ico
 if (!Math) {
   _easycom_uni_icons();
 }
-const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
+const _sfc_defineComponent = common_vendor.defineComponent({
   __name: "mine",
   setup(__props) {
+    common_vendor.onShareAppMessage(() => {
+      return {
+        title: "点击登记排队",
+        path: "/pages/tabbar/home"
+      };
+    });
     const appStore = store_modules_app.useAppStore();
     const { role, isLogin, userId } = common_vendor.storeToRefs(appStore);
     const handleLogin = async () => {
@@ -54,7 +60,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         }
       } catch (e) {
         common_vendor.index.hideLoading();
-        common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:163", "登录失败", e);
+        common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:171", "登录失败", e);
         common_vendor.index.showToast({
           title: "登录失败，请重试",
           icon: "none"
@@ -135,7 +141,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         }
       } catch (e) {
         common_vendor.index.hideLoading();
-        common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:260", "设置管理员失败", e);
+        common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:268", "设置管理员失败", e);
         common_vendor.index.showToast({
           title: e.message || "设置失败，请重试",
           icon: "none"
@@ -172,7 +178,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
               if (result.errCode === 0) {
                 closeDialog();
                 if (isSelf) {
-                  common_vendor.index.__f__("log", "at pages/tabbar/mine.vue:310", "移除了自己的管理员权限，更新本地状态");
+                  common_vendor.index.__f__("log", "at pages/tabbar/mine.vue:318", "移除了自己的管理员权限，更新本地状态");
                   appStore.setRole(0);
                   common_vendor.index.showToast({
                     title: "已移除管理员权限，页面已更新",
@@ -187,7 +193,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
                         appStore.setRole(userInfo.data.role);
                       }
                     } catch (e) {
-                      common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:329", "刷新用户信息失败", e);
+                      common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:337", "刷新用户信息失败", e);
                     }
                   }, 500);
                 } else {
@@ -204,7 +210,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
               }
             } catch (e) {
               common_vendor.index.hideLoading();
-              common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:346", "移除管理员失败", e);
+              common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:354", "移除管理员失败", e);
               common_vendor.index.showToast({
                 title: e.message || "移除失败，请重试",
                 icon: "none"
@@ -294,6 +300,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
     };
   }
 });
-const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["__scopeId", "data-v-3a6ac8e1"]]);
+_sfc_defineComponent.__runtimeHooks = 2;
+const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_defineComponent, [["__scopeId", "data-v-3a6ac8e1"]]);
 wx.createPage(MiniProgramPage);
 //# sourceMappingURL=../../../.sourcemap/mp-weixin/pages/tabbar/mine.js.map

@@ -16,7 +16,7 @@ if (!Math) {
 const Finish = () => "../home/Finish.js";
 const Popup = () => "../home/Popup.js";
 const pageSize = 20;
-const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
+const _sfc_defineComponent = common_vendor.defineComponent({
   __name: "home",
   setup(__props) {
     const appStore = store_modules_app.useAppStore();
@@ -226,6 +226,12 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         (_b = popupRef.value) == null ? void 0 : _b.open();
       }
     };
+    common_vendor.onShareAppMessage(() => {
+      return {
+        title: "点击登记排队",
+        path: "/pages/tabbar/home"
+      };
+    });
     return (_ctx, _cache) => {
       return common_vendor.e({
         a: noticeList.value.length > 0
@@ -310,6 +316,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
     };
   }
 });
-const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["__scopeId", "data-v-4764087f"]]);
+_sfc_defineComponent.__runtimeHooks = 2;
+const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_defineComponent, [["__scopeId", "data-v-4764087f"]]);
 wx.createPage(MiniProgramPage);
 //# sourceMappingURL=../../../.sourcemap/mp-weixin/pages/tabbar/home.js.map

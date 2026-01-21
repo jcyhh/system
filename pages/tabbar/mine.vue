@@ -105,6 +105,14 @@
 import { ref } from 'vue'
 import { useAppStore } from '@/store';
 import { storeToRefs } from 'pinia'
+import { onShareAppMessage } from '@dcloudio/uni-app';
+
+onShareAppMessage(()=>{
+	return {
+		title: '点击登记排队',
+		path: '/pages/tabbar/home'
+	}
+})
 
 const appStore = useAppStore()
 const { role, isLogin, userId } = storeToRefs(appStore)

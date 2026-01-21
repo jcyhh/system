@@ -104,7 +104,7 @@
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
-import { onShow, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app';
+import { onShow, onPullDownRefresh, onReachBottom, onShareAppMessage } from '@dcloudio/uni-app';
 import { useAppStore } from '@/store';
 import Finish from '../home/Finish.vue'
 import Popup from '../home/Popup.vue'
@@ -390,6 +390,13 @@ const goFinish = () => {
 		finishRef.value?.open()
 	},300)
 }
+
+onShareAppMessage(()=>{
+	return {
+		title: '点击登记排队',
+		path: '/pages/tabbar/home'
+	}
+})
 </script>
 
 <style lang="scss" scoped>
