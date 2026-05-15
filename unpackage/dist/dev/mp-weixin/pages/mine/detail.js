@@ -1,6 +1,8 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
 const common_assets = require("../../common/assets.js");
+require("../../store/index.js");
+const store_modules_app = require("../../store/modules/app.js");
 if (!Array) {
   const _easycom_uni_icons2 = common_vendor.resolveComponent("uni-icons");
   _easycom_uni_icons2();
@@ -12,14 +14,17 @@ if (!Math) {
 const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
   __name: "detail",
   setup(__props) {
+    const appStore = store_modules_app.useAppStore();
     const detailData = common_vendor.ref(null);
+    const isAdmin = common_vendor.computed(() => appStore.role === 1);
     const statusText = common_vendor.computed(() => {
       if (!detailData.value)
         return "";
       const statusMap = {
         0: "排队中",
         1: "处理中",
-        2: "已完成"
+        2: "已完成",
+        3: "已取消"
       };
       return statusMap[detailData.value.status] || "";
     });
@@ -39,7 +44,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         }
       } catch (e) {
         common_vendor.index.hideLoading();
-        common_vendor.index.__f__("error", "at pages/mine/detail.vue:153", "获取详情失败：", e);
+        common_vendor.index.__f__("error", "at pages/mine/detail.vue:161", "获取详情失败：", e);
         common_vendor.index.showToast({
           title: e.message || "获取失败",
           icon: "none"
@@ -68,6 +73,34 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
     const copy = (text) => {
       common_vendor.index.setClipboardData({
         data: text
+      });
+    };
+    const adminCancel = () => {
+      common_vendor.index.showModal({
+        title: "提示",
+        content: "确定要取消该用户的排队吗？",
+        confirmColor: "#e43d33",
+        success: async (res) => {
+          if (!res.confirm)
+            return;
+          common_vendor.index.showLoading({ title: "取消中..." });
+          try {
+            const truckObj = common_vendor.tr.importObject("truck");
+            const result = await truckObj.adminCancelTask({ id: detailData.value._id });
+            common_vendor.index.hideLoading();
+            if (result.errCode === 0) {
+              common_vendor.index.showToast({ title: "已取消", icon: "success" });
+              setTimeout(() => {
+                common_vendor.index.navigateBack();
+              }, 1e3);
+            } else {
+              common_vendor.index.showToast({ title: result.errMsg || "取消失败", icon: "none" });
+            }
+          } catch (e) {
+            common_vendor.index.hideLoading();
+            common_vendor.index.showToast({ title: e.message || "取消失败", icon: "none" });
+          }
+        }
       });
     };
     common_vendor.onLoad((options) => {
@@ -125,7 +158,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         B: common_vendor.t(statusText.value),
         C: detailData.value.status === 1 ? 1 : "",
         D: detailData.value.status === 0 ? 1 : "",
-        E: detailData.value.status === 2 ? 1 : "",
+        E: detailData.value.status === 3 ? 1 : "",
         F: detailData.value.photo
       }, detailData.value.photo ? {
         G: detailData.value.photo,
@@ -135,7 +168,11 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
       }, detailData.value.complete_photo ? {
         J: detailData.value.complete_photo,
         K: common_vendor.o(($event) => viewImg(detailData.value.complete_photo))
-      } : {}) : {});
+      } : {}) : {}, {
+        L: detailData.value && detailData.value.status === 0 && isAdmin.value
+      }, detailData.value && detailData.value.status === 0 && isAdmin.value ? {
+        M: common_vendor.o(adminCancel)
+      } : {});
     };
   }
 });

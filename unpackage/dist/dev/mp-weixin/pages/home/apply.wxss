@@ -52,6 +52,13 @@
   background-color: #29156a;
   color: #FFFFFF;
 }
+.cancel-btn {
+  height: 88rpx;
+  border-radius: 44rpx;
+  background-color: #FFFFFF;
+  color: #e43d33;
+  border: 1rpx solid #e43d33;
+}
 .citypicker {
   position: absolute;
   left: -99999rpx;

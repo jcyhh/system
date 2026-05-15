@@ -195,6 +195,13 @@ const _sfc_defineComponent = common_vendor.defineComponent({
     });
     const goApply = () => {
       if (currentTask.value) {
+        if (currentTask.value.status === 1) {
+          common_vendor.index.showToast({
+            title: "处理中的单子无法修改",
+            icon: "none"
+          });
+          return;
+        }
         common_vendor.index.navigateTo({
           url: `/pages/home/apply?id=${currentTask.value._id}`
         });
@@ -249,7 +256,7 @@ const _sfc_defineComponent = common_vendor.defineComponent({
         d: common_vendor.o(goNotice)
       } : {}, {
         e: common_assets._imports_0$1,
-        f: common_vendor.t(currentTask.value ? "修改信息" : "我要排队"),
+        f: common_vendor.t(!currentTask.value ? "我要排队" : currentTask.value.status === 1 ? "处理中" : "修改信息"),
         g: common_vendor.o(goApply),
         h: common_assets._imports_1,
         i: common_vendor.o(openFinish),

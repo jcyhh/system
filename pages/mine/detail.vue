@@ -90,11 +90,11 @@
 				<view class="mt30 flex ac size28">
 					<view class="grey">状态：</view>
 					<view class="flex ac">
-						<view :class="{
-							'main': detailData.status === 1,
-							'grey': detailData.status === 0,
-							'': detailData.status === 2
-						}">
+					<view :class="{
+						'main': detailData.status === 1,
+						'grey': detailData.status === 0,
+						'red': detailData.status === 3
+					}">
 							{{ statusText }}
 						</view>
 				</view>
@@ -111,6 +111,10 @@
 			</view>
 		</view>
 		</template>
+	
+		<view class="mt30 pl30 pr30" v-if="detailData && detailData.status === 0 && isAdmin">
+			<view class="cancel-btn flex jc ac" @click="adminCancel">取消排队</view>
+		</view>
 		
 	</view>
 </template>
@@ -118,16 +122,20 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
+import { useAppStore } from '@/store';
 
+const appStore = useAppStore()
 const detailData = ref<any>(null)
+const isAdmin = computed(() => appStore.role === 1)
 
 // 状态文本
 const statusText = computed(() => {
 	if (!detailData.value) return ''
-	const statusMap = {
+	const statusMap: Record<number, string> = {
 		0: '排队中',
 		1: '处理中',
-		2: '已完成'
+		2: '已完成',
+		3: '已取消'
 	}
 	return statusMap[detailData.value.status] || ''
 })
@@ -186,6 +194,37 @@ const copy = (text: string) => {
 	})
 }
 
+// 管理员取消排队
+const adminCancel = () => {
+	uni.showModal({
+		title: '提示',
+		content: '确定要取消该用户的排队吗？',
+		confirmColor: '#e43d33',
+		success: async (res) => {
+			if (!res.confirm) return
+			
+			uni.showLoading({ title: '取消中...' })
+			try {
+				const truckObj = uniCloud.importObject('truck')
+				const result = await truckObj.adminCancelTask({ id: detailData.value._id })
+				uni.hideLoading()
+				
+				if (result.errCode === 0) {
+					uni.showToast({ title: '已取消', icon: 'success' })
+					setTimeout(() => {
+						uni.navigateBack()
+					}, 1000)
+				} else {
+					uni.showToast({ title: result.errMsg || '取消失败', icon: 'none' })
+				}
+			} catch (e: any) {
+				uni.hideLoading()
+				uni.showToast({ title: e.message || '取消失败', icon: 'none' })
+			}
+		}
+	})
+}
+
 // 页面加载
 onLoad((options: any) => {
 	if (options.id) {
@@ -210,5 +249,16 @@ onLoad((options: any) => {
 	width: 200rpx;
 	height: 200rpx;
 	border-radius: 20rpx;
+}
+.red{
+	color: #e43d33;
+}
+.cancel-btn{
+	height: 88rpx;
+	border-radius: 44rpx;
+	background-color: #FFFFFF;
+	color: #e43d33;
+	border: 1rpx solid #e43d33;
+	font-size: 30rpx;
 }
 </style>

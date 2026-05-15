@@ -34,3 +34,14 @@
   height: 200rpx;
   border-radius: 20rpx;
 }
+.red.data-v-f66e8cf8 {
+  color: #e43d33;
+}
+.cancel-btn.data-v-f66e8cf8 {
+  height: 88rpx;
+  border-radius: 44rpx;
+  background-color: #FFFFFF;
+  color: #e43d33;
+  border: 1rpx solid #e43d33;
+  font-size: 30rpx;
+}

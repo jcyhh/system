@@ -70,6 +70,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
       photo: ""
     });
     const currentTaskId = common_vendor.ref("");
+    const currentTaskStatus = common_vendor.ref(-1);
     const isEditMode = common_vendor.computed(() => !!currentTaskId.value);
     const loadCurrentTask = async () => {
       if (!appStore.isLogin) {
@@ -81,6 +82,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         if (res.errCode === 0 && res.data) {
           const task = res.data;
           currentTaskId.value = task._id;
+          currentTaskStatus.value = task.status;
           formData.value = {
             driver_name: task.driver_name || "",
             phone: task.phone || "",
@@ -104,7 +106,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           resetForm();
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/home/apply.vue:203", "查询失败：", e);
+        common_vendor.index.__f__("error", "at pages/home/apply.vue:206", "查询失败：", e);
       }
     };
     const resetForm = () => {
@@ -151,7 +153,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
               title: "上传失败",
               icon: "none"
             });
-            common_vendor.index.__f__("error", "at pages/home/apply.vue:261", "上传失败：", e);
+            common_vendor.index.__f__("error", "at pages/home/apply.vue:264", "上传失败：", e);
           }
         }
       });
@@ -188,10 +190,20 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         });
         return false;
       }
+      formData.value.plate_number = formData.value.plate_number.replace(/\s/g, "");
       if (!formData.value.plate_number) {
         common_vendor.index.showToast({
           title: "请输入车牌号",
           icon: "none"
+        });
+        return false;
+      }
+      const plateReg = /^[\u4e00-\u9fa5][A-Z][A-HJ-NP-Z0-9]{4,6}$/;
+      if (!plateReg.test(formData.value.plate_number)) {
+        common_vendor.index.showToast({
+          title: "车牌号格式不正确（如：苏A12345）",
+          icon: "none",
+          duration: 2500
         });
         return false;
       }
@@ -240,7 +252,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         common_vendor.index.requestSubscribeMessage({
           tmplIds,
           success: (res) => {
-            common_vendor.index.__f__("log", "at pages/home/apply.vue:365", "订阅消息授权结果：", res);
+            common_vendor.index.__f__("log", "at pages/home/apply.vue:381", "订阅消息授权结果：", res);
             const acceptedTmpls = [];
             tmplIds.forEach((id) => {
               if (res[id] === "accept") {
@@ -250,7 +262,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
             resolve(acceptedTmpls);
           },
           fail: (err) => {
-            common_vendor.index.__f__("log", "at pages/home/apply.vue:376", "订阅消息授权失败：", err);
+            common_vendor.index.__f__("log", "at pages/home/apply.vue:392", "订阅消息授权失败：", err);
             resolve([]);
           }
         });
@@ -269,7 +281,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         }
         return true;
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/home/apply.vue:407", "检查排队开关失败：", e);
+        common_vendor.index.__f__("error", "at pages/home/apply.vue:423", "检查排队开关失败：", e);
         return true;
       }
     };
@@ -364,8 +376,36 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           title: e.message || "提交失败",
           icon: "none"
         });
-        common_vendor.index.__f__("error", "at pages/home/apply.vue:519", "提交失败：", e);
+        common_vendor.index.__f__("error", "at pages/home/apply.vue:535", "提交失败：", e);
       }
+    };
+    const cancelQueue = () => {
+      common_vendor.index.showModal({
+        title: "提示",
+        content: "确定要取消排队吗？取消后需重新排队",
+        confirmColor: "#e43d33",
+        success: async (res) => {
+          if (!res.confirm)
+            return;
+          common_vendor.index.showLoading({ title: "取消中..." });
+          try {
+            const truckObj = common_vendor.tr.importObject("truck");
+            const result = await truckObj.cancelTask({ id: currentTaskId.value });
+            common_vendor.index.hideLoading();
+            if (result.errCode === 0) {
+              common_vendor.index.showToast({ title: "已取消排队", icon: "success" });
+              setTimeout(() => {
+                common_vendor.index.switchTab({ url: "/pages/tabbar/home" });
+              }, 1e3);
+            } else {
+              common_vendor.index.showToast({ title: result.errMsg || "取消失败", icon: "none" });
+            }
+          } catch (e) {
+            common_vendor.index.hideLoading();
+            common_vendor.index.showToast({ title: e.message || "取消失败", icon: "none" });
+          }
+        }
+      });
     };
     return (_ctx, _cache) => {
       return common_vendor.e({
@@ -466,11 +506,15 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         O: common_vendor.o(($event) => checked.value = !checked.value),
         P: common_vendor.t(isEditMode.value ? "保存修改" : "提交排队"),
         Q: common_vendor.o(submit),
-        R: common_vendor.sr(cityRef, "5fa7e9e6-10", {
+        R: isEditMode.value && currentTaskStatus.value === 0
+      }, isEditMode.value && currentTaskStatus.value === 0 ? {
+        S: common_vendor.o(cancelQueue)
+      } : {}, {
+        T: common_vendor.sr(cityRef, "5fa7e9e6-10", {
           "k": "cityRef"
         }),
-        S: common_vendor.o(onchange),
-        T: common_vendor.p({
+        U: common_vendor.o(onchange),
+        V: common_vendor.p({
           placeholder: "请选择地址",
           ["popup-title"]: "请选择城市",
           collection: "opendb-city-china",

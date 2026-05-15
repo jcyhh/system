@@ -315,7 +315,7 @@ module.exports = {
               templateId,
               data: {
                 car_number22: { value: plate_number },
-                phrase3: { value: '轮到您了，请就位' }
+                phrase3: { value: '请就位' }
               }
             });
             
@@ -371,7 +371,7 @@ module.exports = {
                 data: {
                   car_number4: { value: plate_number },
                   number9: { value: String(queuePosition - 1) },  // 前面人数
-                  thing3: { value: '排队成功，请耐心等待' }
+                  thing3: { value: '排队成功请耐心等待' }
                 }
               });
               
@@ -480,10 +480,10 @@ module.exports = {
       }
 
       // 验证记录状态（只能修改排队中或处理中的记录）
-      if (record.status === 2) {
+      if (record.status === 2 || record.status === 3) {
         return {
           errCode: 400,
-          errMsg: '已完成的记录不能修改'
+          errMsg: record.status === 2 ? '已完成的记录不能修改' : '已取消的记录不能修改'
         };
       }
 
@@ -594,6 +594,14 @@ module.exports = {
         };
       }
 
+      // 检查任务状态，只有处理中的单子才能提交完成
+      if (record.status !== 1) {
+        return {
+          errCode: 400,
+          errMsg: '只能完成处理中的任务'
+        };
+      }
+
       // 更新当前记录为已完成
       await db.collection('trucks').doc(id).update({
         complete_time: now,
@@ -635,7 +643,7 @@ module.exports = {
                 templateId,
                 data: {
                   car_number22: { value: nextTask.plate_number },
-                  phrase3: { value: '轮到您了，请就位' }
+                  phrase3: { value: '请就位' }
                 }
               });
               
@@ -1305,7 +1313,7 @@ module.exports = {
                 templateId,
                 data: {
                   car_number22: { value: nextTask.plate_number },
-                  phrase3: { value: '轮到您了，请就位' }
+                  phrase3: { value: '请就位' }
                 }
               });
               
@@ -1378,6 +1386,147 @@ module.exports = {
         errCode: 500,
         errMsg: '操作失败：' + e.message
       };
+    }
+  },
+
+  /**
+   * 取消排队
+   * @param {Object} params
+   * @param {String} params.id 任务ID
+   */
+  async cancelTask(params) {
+    const { id } = params || {};
+
+    if (!id) {
+      return { errCode: 400, errMsg: '缺少任务ID' };
+    }
+
+    if (!this.currentUserId) {
+      return { errCode: 401, errMsg: '请先登录' };
+    }
+
+    try {
+      const task = await db.collection('trucks').doc(id).get();
+      if (!task.data[0]) {
+        return { errCode: 404, errMsg: '任务不存在' };
+      }
+
+      const record = task.data[0];
+
+      // 验证是否是当前用户的记录
+      if (record.user_id !== this.currentUserId) {
+        return { errCode: 403, errMsg: '无权操作此记录' };
+      }
+
+      // 只有排队中和处理中的单子才能取消
+      if (record.status !== 0 && record.status !== 1) {
+        return { errCode: 400, errMsg: '当前状态无法取消' };
+      }
+
+      const wasProcessing = record.status === 1;
+      const now = Date.now();
+
+      // 更新为已取消
+      await db.collection('trucks').doc(id).update({
+        status: 3,  // 已取消
+        cancel_time: now,
+        update_time: now
+      });
+
+      // 如果取消的是"处理中"的单子，需要把下一个排队中的单子变为"处理中"
+      if (wasProcessing) {
+        const nextRecord = await db.collection('trucks')
+          .where({ status: 0 })
+          .orderBy('queue_number', 'asc')
+          .limit(1)
+          .get();
+
+        if (nextRecord.data.length > 0) {
+          const nextTask = nextRecord.data[0];
+          await db.collection('trucks').doc(nextTask._id).update({
+            status: 1,
+            update_time: now
+          });
+
+          // 发送排队到号通知给下一个用户
+          try {
+            const preAccessToken = await getWxAccessToken();
+            if (preAccessToken) {
+              const userInfo = await db.collection('uni-id-users').doc(nextTask.user_id).get();
+              if (userInfo.data[0]?.wx_openid?.mp) {
+                const openid = userInfo.data[0].wx_openid.mp;
+                const taskInfo = await db.collection('trucks').doc(nextTask._id).get();
+                const subscribedTmpls = taskInfo.data[0]?.subscribed_tmpls || [];
+                const templateId = '6dmIz67zTI9aE3PJCTrqK48vFvZOctRJDTnzFx0Wj2M';
+
+                if (subscribedTmpls.includes(templateId)) {
+                  await sendSubscribeMsg({
+                    openid,
+                    templateId,
+                    data: {
+                      car_number22: { value: nextTask.plate_number },
+                      phrase3: { value: '请就位' }
+                    }
+                  });
+                }
+              }
+            }
+          } catch (err) {
+            console.error('取消后通知下一位失败：', err);
+          }
+        }
+      }
+
+      return { errCode: 0, errMsg: '已取消排队' };
+    } catch (e) {
+      console.error('取消排队失败：', e);
+      return { errCode: 500, errMsg: '操作失败：' + e.message };
+    }
+  },
+
+  /**
+   * 管理员取消排队
+   * @param {Object} params
+   * @param {String} params.id 任务ID
+   */
+  async adminCancelTask(params) {
+    const { id } = params || {};
+
+    if (!id) {
+      return { errCode: 400, errMsg: '缺少任务ID' };
+    }
+
+    try {
+      // 验证管理员权限
+      const adminInfo = await db.collection('uni-id-users').doc(this.currentUserId).get();
+      if (!adminInfo.data[0] || adminInfo.data[0].role !== 1) {
+        return { errCode: 403, errMsg: '无权限操作' };
+      }
+
+      const task = await db.collection('trucks').doc(id).get();
+      if (!task.data[0]) {
+        return { errCode: 404, errMsg: '任务不存在' };
+      }
+
+      const record = task.data[0];
+
+      if (record.status !== 0) {
+        return { errCode: 400, errMsg: '只能取消排队中的单子' };
+      }
+
+      const now = Date.now();
+
+      await db.collection('trucks').doc(id).update({
+        status: 3,
+        cancel_time: now,
+        admin_cancel: true,
+        update_time: now
+      });
+
+      return { errCode: 0, errMsg: '已取消该用户的排队' };
+    } catch (e) {
+      console.error('管理员取消排队失败：', e);
+      return { errCode: 500, errMsg: '操作失败：' + e.message };
     }
   }
 }

@@ -76,6 +76,8 @@
 		
 		<view class="mt30 btn flex jc ac" @click="submit">{{ isEditMode ? '保存修改' : '提交排队' }}</view>
 		
+		<view class="mt20 cancel-btn flex jc ac" v-if="isEditMode && currentTaskStatus === 0" @click="cancelQueue">取消排队</view>
+		
 		<view class="safeBottom"></view>
 	</view>
 	
@@ -154,6 +156,7 @@ const formData = ref({
 
 // 当前任务ID（编辑模式）
 const currentTaskId = ref('')
+const currentTaskStatus = ref(-1)
 const isEditMode = computed(() => !!currentTaskId.value)
 
 // 查询并回显数据
@@ -168,9 +171,9 @@ const loadCurrentTask = async () => {
 		const res = await truckObj.getCurrentTask()
 		
 		if (res.errCode === 0 && res.data) {
-			// 有排队中的申请，回显数据
 			const task = res.data
 			currentTaskId.value = task._id
+			currentTaskStatus.value = task.status
 			
 			formData.value = {
 				driver_name: task.driver_name || '',
@@ -303,10 +306,23 @@ const validate = () => {
 		return false
 	}
 	
+	// 去除空格后校验车牌号
+	formData.value.plate_number = formData.value.plate_number.replace(/\s/g, '')
+	
 	if (!formData.value.plate_number) {
 		uni.showToast({
 			title: '请输入车牌号',
 			icon: 'none'
+		})
+		return false
+	}
+	
+	const plateReg = /^[\u4e00-\u9fa5][A-Z][A-HJ-NP-Z0-9]{4,6}$/
+	if (!plateReg.test(formData.value.plate_number)) {
+		uni.showToast({
+			title: '车牌号格式不正确（如：苏A12345）',
+			icon: 'none',
+			duration: 2500
 		})
 		return false
 	}
@@ -519,6 +535,37 @@ const submit = async () => {
 		console.error('提交失败：', e)
 	}
 }
+
+// 取消排队
+const cancelQueue = () => {
+	uni.showModal({
+		title: '提示',
+		content: '确定要取消排队吗？取消后需重新排队',
+		confirmColor: '#e43d33',
+		success: async (res) => {
+			if (!res.confirm) return
+			
+			uni.showLoading({ title: '取消中...' })
+			try {
+				const truckObj = uniCloud.importObject('truck')
+				const result = await truckObj.cancelTask({ id: currentTaskId.value })
+				uni.hideLoading()
+				
+				if (result.errCode === 0) {
+					uni.showToast({ title: '已取消排队', icon: 'success' })
+					setTimeout(() => {
+						uni.switchTab({ url: '/pages/tabbar/home' })
+					}, 1000)
+				} else {
+					uni.showToast({ title: result.errMsg || '取消失败', icon: 'none' })
+				}
+			} catch (e: any) {
+				uni.hideLoading()
+				uni.showToast({ title: e.message || '取消失败', icon: 'none' })
+			}
+		}
+	})
+}
 </script>
 
 <style lang="scss">
@@ -550,6 +597,13 @@ const submit = async () => {
 	border-radius: 44rpx;
 	background-color: $main-color;
 	color: #FFFFFF;
+}
+.cancel-btn{
+	height: 88rpx;
+	border-radius: 44rpx;
+	background-color: #FFFFFF;
+	color: #e43d33;
+	border: 1rpx solid #e43d33;
 }
 .citypicker{
 	position: absolute;

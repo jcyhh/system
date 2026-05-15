@@ -46,7 +46,7 @@
 				<uni-icons type="right" color="#999999" :size="20"></uni-icons>
 			</view>
 			
-		<view v-if="role === 1" class="flex jb ac pt30 pb20" @click="goSystem">
+		<view v-if="role === 1" class="flex jb ac pt30" @click="goSystem">
 			<view class="flex ac">
 				<uni-icons type="settings" color="#29156a" :size="22"></uni-icons>
 				<view class="size28 ml10">系统管理</view>
@@ -64,7 +64,7 @@
 				</view>
 			</button>
 			
-			<view class="flex jb ac pt30 pb20" @click="gorule">
+			<view class="flex jb ac pb20" @click="gorule">
 				<view class="flex ac">
 					<image src="/static/imgs/12.png" class="img38"></image>
 					<view class="size28 ml20">操作指引</view>

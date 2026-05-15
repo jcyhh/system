@@ -13,7 +13,7 @@
 		<view class="flex ast">
 			<view class="card flex1 flex ac mr20" @click="goApply">
 				<image src="/static/imgs/2.png" class="img88"></image>
-				<view class="ml20 size28">{{ currentTask ? '修改信息' : '我要排队' }}</view>
+				<view class="ml20 size28">{{ !currentTask ? '我要排队' : currentTask.status === 1 ? '处理中' : '修改信息' }}</view>
 			</view>
 			<view class="card flex1 flex ac" @click="openFinish">
 				<image src="/static/imgs/4.png" class="img88"></image>
@@ -345,8 +345,15 @@ onReachBottom(() => {
 })
 
 const goApply = () => {
-	// 如果有排队中的申请，跳转到修改页面（带上当前申请数据）
 	if (currentTask.value) {
+		// 处理中的单子不允许修改
+		if (currentTask.value.status === 1) {
+			uni.showToast({
+				title: '处理中的单子无法修改',
+				icon: 'none'
+			})
+			return
+		}
 		uni.navigateTo({
 			url: `/pages/home/apply?id=${currentTask.value._id}`
 		})
