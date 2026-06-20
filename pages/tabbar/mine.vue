@@ -71,6 +71,14 @@
 				</view>
 				<uni-icons type="right" color="#999999" :size="20"></uni-icons>
 			</view>
+			
+			<view v-if="role === 1" class="flex jb ac pb20 pt30" @click="goAdminRule">
+				<view class="flex ac">
+					<image src="/static/imgs/12.png" class="img38"></image>
+					<view class="size28 ml20">管理员操作指引</view>
+				</view>
+				<uni-icons type="right" color="#999999" :size="20"></uni-icons>
+			</view>
 		</view>
 	</view>
 	
@@ -106,6 +114,7 @@ import { ref } from 'vue'
 import { useAppStore } from '@/store';
 import { storeToRefs } from 'pinia'
 import { onShareAppMessage } from '@dcloudio/uni-app';
+import { hideDelayedLoading, showDelayedLoading } from '../../utils/loading';
 
 onShareAppMessage(()=>{
 	return {
@@ -139,7 +148,7 @@ const handleLogin = async () => {
 			return
 		}
 		
-		uni.showLoading({
+		showDelayedLoading({
 			title: '登录中...'
 		})
 		
@@ -149,7 +158,7 @@ const handleLogin = async () => {
 			code: loginRes.code
 		})
 		
-		uni.hideLoading()
+		hideDelayedLoading()
 		
 		if (res.errCode === 0) {
 			// 保存登录信息和角色
@@ -167,7 +176,7 @@ const handleLogin = async () => {
 			})
 		}
 	} catch (e: any) {
-		uni.hideLoading()
+		hideDelayedLoading()
 		console.error('登录失败', e)
 		uni.showToast({
 			title: '登录失败，请重试',
@@ -201,6 +210,12 @@ const goLog = (type:number) => {
 const gorule = () => {
 	uni.navigateTo({
 		url:"/pages/mine/rule"
+	})
+}
+
+const goAdminRule = () => {
+	uni.navigateTo({
+		url:"/pages/mine/admin-rule"
 	})
 }
 
@@ -238,7 +253,7 @@ const confirmAddAdmin = async () => {
 		return
 	}
 	
-	uni.showLoading({
+	showDelayedLoading({
 		title: '设置中...'
 	})
 	
@@ -249,7 +264,7 @@ const confirmAddAdmin = async () => {
 			role: 1  // 1=管理员
 		})
 		
-		uni.hideLoading()
+		hideDelayedLoading()
 		
 		if (res.errCode === 0) {
 			uni.showToast({
@@ -264,7 +279,7 @@ const confirmAddAdmin = async () => {
 			})
 		}
 	} catch (e: any) {
-		uni.hideLoading()
+		hideDelayedLoading()
 		console.error('设置管理员失败', e)
 		uni.showToast({
 			title: e.message || '设置失败，请重试',
@@ -297,7 +312,7 @@ const confirmRemoveAdmin = async () => {
 		content: confirmContent,
 		success: async (res) => {
 			if (res.confirm) {
-				uni.showLoading({
+				showDelayedLoading({
 					title: '移除中...'
 				})
 				
@@ -308,7 +323,7 @@ const confirmRemoveAdmin = async () => {
 						role: 0  // 0=普通用户
 					})
 					
-					uni.hideLoading()
+					hideDelayedLoading()
 					
 					if (result.errCode === 0) {
 						closeDialog()
@@ -350,7 +365,7 @@ const confirmRemoveAdmin = async () => {
 						})
 					}
 				} catch (e: any) {
-					uni.hideLoading()
+					hideDelayedLoading()
 					console.error('移除管理员失败', e)
 					uni.showToast({
 						title: e.message || '移除失败，请重试',

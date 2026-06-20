@@ -8,6 +8,7 @@
     "pages/mine/finished",
     "pages/mine/detail",
     "pages/mine/rule",
+    "pages/mine/admin-rule",
     "pages/notice/list",
     "pages/notice/detail",
     "pages/notice/edit",

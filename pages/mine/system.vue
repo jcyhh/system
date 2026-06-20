@@ -38,6 +38,7 @@
 import { ref } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { useAppStore } from '@/store'
+import { hideDelayedLoading, showDelayedLoading } from '../../utils/loading'
 
 const appStore = useAppStore()
 
@@ -103,7 +104,7 @@ const updateQueueSwitch = async (value: boolean) => {
 	}
 	
 	loading.value = true
-	uni.showLoading({
+	showDelayedLoading({
 		title: '保存中...'
 	})
 	
@@ -117,14 +118,14 @@ const updateQueueSwitch = async (value: boolean) => {
 			})
 		
 		queueSwitch.value = value
-		uni.hideLoading()
+		hideDelayedLoading()
 		uni.showToast({
 			title: value ? '已开启排队' : '已关闭排队',
 			icon: 'success'
 		})
 	} catch (e) {
 		console.error('更新排队开关失败：', e)
-		uni.hideLoading()
+		hideDelayedLoading()
 		uni.showToast({
 			title: '保存失败',
 			icon: 'none'

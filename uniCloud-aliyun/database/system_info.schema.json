@@ -14,7 +14,7 @@
     "key": {
       "bsonType": "string",
       "label": "标识Key",
-      "description": "唯一标识，如：user_agreement、privacy_policy",
+      "description": "唯一标识，如：user_agreement、privacy_policy、operation_guide、admin_operation_guide、queue_switch",
       "title": "标识Key"
     },
     "title": {

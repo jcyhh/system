@@ -2,6 +2,7 @@
 const common_vendor = require("../../common/vendor.js");
 const common_assets = require("../../common/assets.js");
 const store_modules_app = require("../../store/modules/app.js");
+const utils_loading = require("../../utils/loading.js");
 if (!Array) {
   const _easycom_uni_icons2 = common_vendor.resolveComponent("uni-icons");
   _easycom_uni_icons2();
@@ -17,7 +18,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
     const dealingData = common_vendor.ref(null);
     const loadDealingData = async () => {
       try {
-        const truckObj = common_vendor.tr.importObject("truck");
+        const truckObj = common_vendor._r.importObject("truck");
         const res = await truckObj.getList({
           status: 1,
           // 处理中
@@ -37,7 +38,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           });
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/mine/dealing.vue:141", "获取失败：", e);
+        common_vendor.index.__f__("error", "at pages/mine/dealing.vue:142", "获取失败：", e);
         common_vendor.index.showToast({
           title: e.message || "获取失败",
           icon: "none"
@@ -69,8 +70,8 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
     const submit = async () => {
       if (!dealingData.value)
         return;
-      common_vendor.index.__f__("log", "at pages/mine/dealing.vue:181", "当前用户角色:", appStore.role);
-      common_vendor.index.__f__("log", "at pages/mine/dealing.vue:182", "是否管理员:", appStore.role === 1);
+      common_vendor.index.__f__("log", "at pages/mine/dealing.vue:182", "当前用户角色:", appStore.role);
+      common_vendor.index.__f__("log", "at pages/mine/dealing.vue:183", "是否管理员:", appStore.role === 1);
       if (appStore.role === 1) {
         common_vendor.index.showModal({
           title: "确认完成",
@@ -78,12 +79,12 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           success: async (res) => {
             if (res.confirm) {
               try {
-                common_vendor.index.showLoading({ title: "处理中..." });
-                const truckObj = common_vendor.tr.importObject("truck");
+                utils_loading.showDelayedLoading({ title: "处理中..." });
+                const truckObj = common_vendor._r.importObject("truck");
                 const result = await truckObj.adminComplete({
                   id: dealingData.value._id
                 });
-                common_vendor.index.hideLoading();
+                utils_loading.hideDelayedLoading();
                 if (result.errCode === 0) {
                   common_vendor.index.showToast({
                     title: "操作成功",
@@ -99,8 +100,8 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
                   });
                 }
               } catch (e) {
-                common_vendor.index.hideLoading();
-                common_vendor.index.__f__("error", "at pages/mine/dealing.vue:219", "操作失败：", e);
+                utils_loading.hideDelayedLoading();
+                common_vendor.index.__f__("error", "at pages/mine/dealing.vue:220", "操作失败：", e);
                 common_vendor.index.showToast({
                   title: e.message || "操作失败",
                   icon: "none"
@@ -126,7 +127,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           icon: "success"
         });
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/mine/dealing.vue:251", "刷新失败：", e);
+        common_vendor.index.__f__("error", "at pages/mine/dealing.vue:252", "刷新失败：", e);
       } finally {
         common_vendor.index.stopPullDownRefresh();
       }
@@ -143,10 +144,10 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
       }, dealingData.value ? common_vendor.e({
         e: common_vendor.t(dealingData.value.driver_name),
         f: common_assets._imports_1$1,
-        g: common_vendor.o(($event) => copy(dealingData.value.driver_name)),
+        g: common_vendor.o(($event) => copy(dealingData.value.driver_name), "8f"),
         h: common_vendor.t(dealingData.value.phone),
         i: common_assets._imports_1$1,
-        j: common_vendor.o(($event) => copy(dealingData.value.phone)),
+        j: common_vendor.o(($event) => copy(dealingData.value.phone), "1a"),
         k: dealingData.value.operation_type === 0
       }, dealingData.value.operation_type === 0 ? {
         l: common_assets._imports_2$1
@@ -162,11 +163,11 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         }),
         q: common_vendor.t(dealingData.value.loading_province),
         r: common_vendor.t(dealingData.value.loading_address),
-        s: common_vendor.o(($event) => copy(dealingData.value.loading_province + dealingData.value.loading_address))
+        s: common_vendor.o(($event) => copy(dealingData.value.loading_province + dealingData.value.loading_address), "3a")
       } : {}, {
         t: common_vendor.t(dealingData.value.plate_number),
         v: common_assets._imports_1$1,
-        w: common_vendor.o(($event) => copy(dealingData.value.plate_number)),
+        w: common_vendor.o(($event) => copy(dealingData.value.plate_number), "48"),
         x: common_vendor.t(dealingData.value.truck_type),
         y: common_vendor.t(formatTime(dealingData.value.create_time)),
         z: dealingData.value.complete_time
@@ -174,13 +175,13 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         A: common_vendor.t(formatTime(dealingData.value.complete_time))
       } : {}, {
         B: dealingData.value.photo,
-        C: common_vendor.o(($event) => viewImg(dealingData.value.photo)),
+        C: common_vendor.o(($event) => viewImg(dealingData.value.photo), "51"),
         D: dealingData.value.complete_photo
       }, dealingData.value.complete_photo ? {
         E: dealingData.value.complete_photo,
-        F: common_vendor.o(($event) => viewImg(dealingData.value.complete_photo))
+        F: common_vendor.o(($event) => viewImg(dealingData.value.complete_photo), "30")
       } : {}, {
-        G: common_vendor.o(submit)
+        G: common_vendor.o(submit, "40")
       }) : {});
     };
   }

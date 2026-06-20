@@ -2,6 +2,7 @@
 const common_vendor = require("../../common/vendor.js");
 const common_assets = require("../../common/assets.js");
 require("../../store/index.js");
+const utils_loading = require("../../utils/loading.js");
 const store_modules_app = require("../../store/modules/app.js");
 if (!Array) {
   const _easycom_uni_icons2 = common_vendor.resolveComponent("uni-icons");
@@ -30,10 +31,10 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
     });
     const loadDetail = async (id) => {
       try {
-        common_vendor.index.showLoading({ title: "加载中..." });
-        const truckObj = common_vendor.tr.importObject("truck");
+        utils_loading.showDelayedLoading({ title: "加载中..." });
+        const truckObj = common_vendor._r.importObject("truck");
         const res = await truckObj.getDetail({ id });
-        common_vendor.index.hideLoading();
+        utils_loading.hideDelayedLoading();
         if (res.errCode === 0) {
           detailData.value = res.data;
         } else {
@@ -43,8 +44,8 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           });
         }
       } catch (e) {
-        common_vendor.index.hideLoading();
-        common_vendor.index.__f__("error", "at pages/mine/detail.vue:161", "获取详情失败：", e);
+        utils_loading.hideDelayedLoading();
+        common_vendor.index.__f__("error", "at pages/mine/detail.vue:165", "获取详情失败：", e);
         common_vendor.index.showToast({
           title: e.message || "获取失败",
           icon: "none"
@@ -75,6 +76,58 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         data: text
       });
     };
+    const adminStart = () => {
+      common_vendor.index.showModal({
+        title: "提示",
+        content: "确定将该排队订单设为处理中吗？",
+        success: async (res) => {
+          if (!res.confirm)
+            return;
+          utils_loading.showDelayedLoading({ title: "处理中..." });
+          try {
+            const truckObj = common_vendor._r.importObject("truck");
+            const result = await truckObj.adminStartProcessing({ id: detailData.value._id });
+            utils_loading.hideDelayedLoading();
+            if (result.errCode === 0) {
+              common_vendor.index.showToast({ title: "已开始处理", icon: "success" });
+              loadDetail(detailData.value._id);
+            } else {
+              common_vendor.index.showToast({ title: result.errMsg || "操作失败", icon: "none" });
+            }
+          } catch (e) {
+            utils_loading.hideDelayedLoading();
+            common_vendor.index.showToast({ title: e.message || "操作失败", icon: "none" });
+          }
+        }
+      });
+    };
+    const adminComplete = () => {
+      common_vendor.index.showModal({
+        title: "确认完成",
+        content: "确定要完成该订单吗？",
+        success: async (res) => {
+          if (!res.confirm)
+            return;
+          utils_loading.showDelayedLoading({ title: "处理中..." });
+          try {
+            const truckObj = common_vendor._r.importObject("truck");
+            const result = await truckObj.adminComplete({ id: detailData.value._id });
+            utils_loading.hideDelayedLoading();
+            if (result.errCode === 0) {
+              common_vendor.index.showToast({ title: "操作成功", icon: "success" });
+              setTimeout(() => {
+                common_vendor.index.navigateBack();
+              }, 1e3);
+            } else {
+              common_vendor.index.showToast({ title: result.errMsg || "操作失败", icon: "none" });
+            }
+          } catch (e) {
+            utils_loading.hideDelayedLoading();
+            common_vendor.index.showToast({ title: e.message || "操作失败", icon: "none" });
+          }
+        }
+      });
+    };
     const adminCancel = () => {
       common_vendor.index.showModal({
         title: "提示",
@@ -83,11 +136,11 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         success: async (res) => {
           if (!res.confirm)
             return;
-          common_vendor.index.showLoading({ title: "取消中..." });
+          utils_loading.showDelayedLoading({ title: "取消中..." });
           try {
-            const truckObj = common_vendor.tr.importObject("truck");
+            const truckObj = common_vendor._r.importObject("truck");
             const result = await truckObj.adminCancelTask({ id: detailData.value._id });
-            common_vendor.index.hideLoading();
+            utils_loading.hideDelayedLoading();
             if (result.errCode === 0) {
               common_vendor.index.showToast({ title: "已取消", icon: "success" });
               setTimeout(() => {
@@ -97,7 +150,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
               common_vendor.index.showToast({ title: result.errMsg || "取消失败", icon: "none" });
             }
           } catch (e) {
-            common_vendor.index.hideLoading();
+            utils_loading.hideDelayedLoading();
             common_vendor.index.showToast({ title: e.message || "取消失败", icon: "none" });
           }
         }
@@ -125,10 +178,10 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
       }, detailData.value ? common_vendor.e({
         e: common_vendor.t(detailData.value.driver_name),
         f: common_assets._imports_1$1,
-        g: common_vendor.o(($event) => copy(detailData.value.driver_name)),
+        g: common_vendor.o(($event) => copy(detailData.value.driver_name), "69"),
         h: common_vendor.t(detailData.value.phone),
         i: common_assets._imports_1$1,
-        j: common_vendor.o(($event) => copy(detailData.value.phone)),
+        j: common_vendor.o(($event) => copy(detailData.value.phone), "36"),
         k: detailData.value.operation_type === 0
       }, detailData.value.operation_type === 0 ? {
         l: common_assets._imports_2$1
@@ -144,11 +197,11 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         }),
         q: common_vendor.t(detailData.value.loading_province),
         r: common_vendor.t(detailData.value.loading_address),
-        s: common_vendor.o(($event) => copy(detailData.value.loading_province + detailData.value.loading_address))
+        s: common_vendor.o(($event) => copy(detailData.value.loading_province + detailData.value.loading_address), "8e")
       } : {}, {
         t: common_vendor.t(detailData.value.plate_number),
         v: common_assets._imports_1$1,
-        w: common_vendor.o(($event) => copy(detailData.value.plate_number)),
+        w: common_vendor.o(($event) => copy(detailData.value.plate_number), "d6"),
         x: common_vendor.t(detailData.value.truck_type),
         y: common_vendor.t(formatTime(detailData.value.create_time)),
         z: detailData.value.complete_time
@@ -159,20 +212,32 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         C: detailData.value.status === 1 ? 1 : "",
         D: detailData.value.status === 0 ? 1 : "",
         E: detailData.value.status === 3 ? 1 : "",
-        F: detailData.value.photo
+        F: isAdmin.value && detailData.value.admin_started
+      }, isAdmin.value && detailData.value.admin_started ? {} : {}, {
+        G: detailData.value.photo
       }, detailData.value.photo ? {
-        G: detailData.value.photo,
-        H: common_vendor.o(($event) => viewImg(detailData.value.photo))
+        H: detailData.value.photo,
+        I: common_vendor.o(($event) => viewImg(detailData.value.photo), "ee")
       } : {}, {
-        I: detailData.value.complete_photo
+        J: detailData.value.complete_photo
       }, detailData.value.complete_photo ? {
-        J: detailData.value.complete_photo,
-        K: common_vendor.o(($event) => viewImg(detailData.value.complete_photo))
+        K: detailData.value.complete_photo,
+        L: common_vendor.o(($event) => viewImg(detailData.value.complete_photo), "fb")
       } : {}) : {}, {
-        L: detailData.value && detailData.value.status === 0 && isAdmin.value
-      }, detailData.value && detailData.value.status === 0 && isAdmin.value ? {
-        M: common_vendor.o(adminCancel)
-      } : {});
+        M: detailData.value && isAdmin.value
+      }, detailData.value && isAdmin.value ? common_vendor.e({
+        N: detailData.value.status === 0
+      }, detailData.value.status === 0 ? {
+        O: common_vendor.o(adminStart, "8f")
+      } : {}, {
+        P: detailData.value.status === 1
+      }, detailData.value.status === 1 ? {
+        Q: common_vendor.o(adminComplete, "47")
+      } : {}, {
+        R: detailData.value.status === 0
+      }, detailData.value.status === 0 ? {
+        S: common_vendor.o(adminCancel, "7e")
+      } : {}) : {});
     };
   }
 });

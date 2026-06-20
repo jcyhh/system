@@ -34,7 +34,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           page.value = 1;
           hasMore.value = true;
         }
-        const truckObj = common_vendor.tr.importObject("truck");
+        const truckObj = common_vendor._r.importObject("truck");
         const res = await truckObj.getFinishedList({
           page: page.value,
           pageSize,
@@ -151,13 +151,13 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         d: common_vendor.o(($event) => {
           var _a;
           return (_a = filterRef.value) == null ? void 0 : _a.open();
-        }),
+        }, "80"),
         e: common_vendor.p({
           type: "redo-filled",
           color: "#FFFFFF",
           size: 35
         }),
-        f: common_vendor.o(exportExcel),
+        f: common_vendor.o(exportExcel, "7b"),
         g: common_vendor.f(finishedList.value, (item, index, i0) => {
           return {
             a: common_vendor.t(item.driver_name),
@@ -180,7 +180,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         m: common_vendor.sr(filterRef, "d9e2002d-2", {
           "k": "filterRef"
         }),
-        n: common_vendor.o(onFilter),
+        n: common_vendor.o(onFilter, "27"),
         o: common_vendor.sr(excelRef, "d9e2002d-3", {
           "k": "excelRef"
         })

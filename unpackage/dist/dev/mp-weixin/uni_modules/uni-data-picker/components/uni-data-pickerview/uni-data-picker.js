@@ -321,7 +321,7 @@ const dataPicker = {
       });
     },
     getCommand(options = {}) {
-      let db = common_vendor.tr.database(this.spaceInfo);
+      let db = common_vendor._r.database(this.spaceInfo);
       const action = options.action || this.action;
       if (action) {
         db = db.action(action);

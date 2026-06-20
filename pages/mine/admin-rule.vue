@@ -13,7 +13,9 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
+import { useAppStore } from '@/store'
 
+const appStore = useAppStore()
 const systemInfo = ref<any>(null)
 
 const loadSystemInfo = async () => {
@@ -21,7 +23,7 @@ const loadSystemInfo = async () => {
 		const db = uniCloud.database()
 		const res = await db.collection('system_info')
 			.where({
-				key: 'operation_guide',
+				key: 'admin_operation_guide',
 				is_published: true
 			})
 			.limit(1)
@@ -45,6 +47,17 @@ const loadSystemInfo = async () => {
 }
 
 onLoad(() => {
+	if (appStore.role !== 1) {
+		uni.showToast({
+			title: '无权限访问',
+			icon: 'none'
+		})
+		setTimeout(() => {
+			uni.navigateBack()
+		}, 800)
+		return
+	}
+	
 	loadSystemInfo()
 })
 </script>

@@ -55,6 +55,12 @@
 			}
 		},
 		{
+			"path": "pages/mine/admin-rule",
+			"style": {
+				"navigationBarTitleText": "管理员操作指引"
+			}
+		},
+		{
 			"path": "pages/notice/list",
 			"style": {
 				"navigationBarTitleText": "公告列表",

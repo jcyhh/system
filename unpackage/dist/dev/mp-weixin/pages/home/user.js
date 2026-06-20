@@ -6,7 +6,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
     const systemInfo = common_vendor.ref(null);
     const loadSystemInfo = async () => {
       try {
-        const db = common_vendor.tr.database();
+        const db = common_vendor._r.database();
         const res = await db.collection("system_info").where({
           key: "user_agreement",
           is_published: true

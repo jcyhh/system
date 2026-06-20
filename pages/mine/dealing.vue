@@ -111,6 +111,7 @@
 import { ref } from 'vue';
 import { onLoad, onPullDownRefresh } from '@dcloudio/uni-app';
 import { useAppStore } from '@/store/modules/app';
+import { hideDelayedLoading, showDelayedLoading } from '../../utils/loading';
 
 const appStore = useAppStore();
 const dealingData = ref<any>(null)
@@ -189,14 +190,14 @@ const submit = async () => {
 			success: async (res) => {
 				if (res.confirm) {
 					try {
-						uni.showLoading({ title: '处理中...' })
+						showDelayedLoading({ title: '处理中...' })
 						
 						const truckObj = uniCloud.importObject('truck')
 						const result = await truckObj.adminComplete({
 							id: dealingData.value._id
 						})
 						
-						uni.hideLoading()
+						hideDelayedLoading()
 						
 						if (result.errCode === 0) {
 							uni.showToast({
@@ -215,7 +216,7 @@ const submit = async () => {
 							})
 						}
 					} catch (e: any) {
-						uni.hideLoading()
+						hideDelayedLoading()
 						console.error('操作失败：', e)
 						uni.showToast({
 							title: e.message || '操作失败',

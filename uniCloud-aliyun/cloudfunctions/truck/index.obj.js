@@ -125,6 +125,113 @@ async function sendSubscribeMsg(params) {
   }
 }
 
+// 发送排队到号通知
+async function notifyQueueReady(task) {
+  const userInfo = await db.collection('uni-id-users').doc(task.user_id).get();
+  if (!userInfo.data[0]?.wx_openid?.mp) return;
+
+  const openid = userInfo.data[0].wx_openid.mp;
+  const taskInfo = await db.collection('trucks').doc(task._id).get();
+  const subscribedTmpls = taskInfo.data[0]?.subscribed_tmpls || [];
+  const templateId = '6dmIz67zTI9aE3PJCTrqK48vFvZOctRJDTnzFx0Wj2M';
+
+  if (!subscribedTmpls.includes(templateId)) return;
+
+  const res = await sendSubscribeMsg({
+    openid,
+    templateId,
+    data: {
+      car_number22: { value: task.plate_number },
+      phrase3: { value: '请就位' }
+    }
+  });
+
+  if (res.errCode === 0) {
+    console.log('✅ 排队到号通知发送成功');
+  } else {
+    console.error('❌ 排队到号通知发送失败:', res.errMsg);
+  }
+}
+
+// 将队首排队中升为处理中（正常流程）
+async function promoteNextWaitingTask(now) {
+  const nextRecord = await db.collection('trucks')
+    .where({ status: 0 })
+    .orderBy('queue_number', 'asc')
+    .limit(1)
+    .get();
+
+  if (nextRecord.data.length === 0) return;
+
+  const nextTask = nextRecord.data[0];
+  await db.collection('trucks').doc(nextTask._id).update({
+    status: 1,
+    admin_started: false,
+    update_time: now
+  });
+
+  try {
+    await notifyQueueReady(nextTask);
+  } catch (err) {
+    console.error('发送排队到号通知失败：', err);
+  }
+}
+
+// 通知排队中前3名进度
+async function notifyWaitingProgress() {
+  const allWaitingTasks = await db.collection('trucks')
+    .where({ status: 0 })
+    .orderBy('queue_number', 'asc')
+    .get();
+
+  for (let i = 0; i < allWaitingTasks.data.length; i++) {
+    const waitingTask = allWaitingTasks.data[i];
+    const queuePosition = i + 1;
+
+    if (queuePosition > 3) continue;
+
+    try {
+      const userInfo = await db.collection('uni-id-users').doc(waitingTask.user_id).get();
+      if (!userInfo.data[0]?.wx_openid?.mp) continue;
+
+      const openid = userInfo.data[0].wx_openid.mp;
+      const taskInfo = await db.collection('trucks').doc(waitingTask._id).get();
+      const subscribedTmpls = taskInfo.data[0]?.subscribed_tmpls || [];
+      const templateId = 'dKt-GXFHtyyoN_6Ag-ulck-eafezp1bQ6Sz95QCu6nM';
+
+      if (!subscribedTmpls.includes(templateId)) continue;
+
+      const res = await sendSubscribeMsg({
+        openid,
+        templateId,
+        data: {
+          car_number11: { value: waitingTask.plate_number },
+          number3: { value: String(queuePosition) }
+        }
+      });
+
+      if (res.errCode === 0) {
+        console.log('✅ 排队进度通知发送成功');
+      } else {
+        console.error('❌ 排队进度通知发送失败:', res.errMsg);
+      }
+    } catch (err) {
+      console.error('发送排队进度通知失败：', err);
+    }
+  }
+}
+
+// 正常流程的处理中单子结束后的后续逻辑
+async function afterNormalProcessingEnded(record, now) {
+  if (record.admin_started) {
+    console.log('⏭️ 管理员插队单，不自动升下一个');
+    return;
+  }
+
+  await promoteNextWaitingTask(now);
+  await notifyWaitingProgress();
+}
+
 module.exports = {
   _before: async function () {
     // 云对象前置方法 - 验证登录状态
@@ -272,6 +379,7 @@ module.exports = {
         photo,
         arrival_time: now,
         status,
+        admin_started: status === 1 ? false : undefined,
         queue_number: newQueueNumber,
         subscribed_tmpls: subscribedTmpls, // 保存用户订阅的模板ID
         create_time: now,
@@ -528,6 +636,10 @@ module.exports = {
         updateData.loading_address = '';
       }
 
+      if (newStatus === 1 && record.status === 0) {
+        updateData.admin_started = false;
+      }
+
       await db.collection('trucks').doc(id).update(updateData);
 
       return {
@@ -610,101 +722,7 @@ module.exports = {
         update_time: now
       });
 
-      // 查找下一个排队中的记录（按队列号排序，最小的优先）
-      const nextRecord = await db.collection('trucks')
-        .where({
-          status: 0  // 排队中
-        })
-        .orderBy('queue_number', 'asc')
-        .limit(1)
-        .get();
-
-      // 如果有下一个排队中的记录，将其状态改为"处理中"
-      if (nextRecord.data.length > 0) {
-        const nextTask = nextRecord.data[0];
-        await db.collection('trucks').doc(nextTask._id).update({
-          status: 1,  // 处理中
-          update_time: now
-        });
-        
-        // 发送"排队到号通知"给下一个用户（同步等待）
-        try {
-          const userInfo = await db.collection('uni-id-users').doc(nextTask.user_id).get();
-          if (userInfo.data[0]?.wx_openid?.mp) {
-            const openid = userInfo.data[0].wx_openid.mp;
-            
-            const taskInfo = await db.collection('trucks').doc(nextTask._id).get();
-            const subscribedTmpls = taskInfo.data[0]?.subscribed_tmpls || [];
-            const templateId = '6dmIz67zTI9aE3PJCTrqK48vFvZOctRJDTnzFx0Wj2M';  // 排队到号通知
-            
-            if (subscribedTmpls.includes(templateId)) {
-              const res = await sendSubscribeMsg({
-                openid,
-                templateId,
-                data: {
-                  car_number22: { value: nextTask.plate_number },
-                  phrase3: { value: '请就位' }
-                }
-              });
-              
-              if (res.errCode === 0) {
-                console.log('✅ 排队到号通知发送成功');
-              } else {
-                console.error('❌ 排队到号通知发送失败:', res.errMsg);
-              }
-            }
-          }
-        } catch (err) {
-          console.error('发送排队到号通知失败：', err);
-        }
-      }
-      
-      // 查询所有排队中的单子，通知前面≤3人的用户
-      const allWaitingTasks = await db.collection('trucks')
-        .where({
-          status: 0  // 排队中
-        })
-        .orderBy('queue_number', 'asc')
-        .get();
-      
-      // 遍历排队中的单子，计算每个单子前面的数量，发送"排队进度通知"
-      for (let i = 0; i < allWaitingTasks.data.length; i++) {
-        const waitingTask = allWaitingTasks.data[i];
-        const queuePosition = i + 1; // 前面的数量（不包括处理中的）
-        
-        // 如果前面≤3人，发送"排队进度通知"（同步等待）
-        if (queuePosition <= 3) {
-          try {
-            const userInfo = await db.collection('uni-id-users').doc(waitingTask.user_id).get();
-            if (userInfo.data[0]?.wx_openid?.mp) {
-              const openid = userInfo.data[0].wx_openid.mp;
-              
-              const taskInfo = await db.collection('trucks').doc(waitingTask._id).get();
-              const subscribedTmpls = taskInfo.data[0]?.subscribed_tmpls || [];
-              const templateId = 'dKt-GXFHtyyoN_6Ag-ulck-eafezp1bQ6Sz95QCu6nM';
-              
-              if (subscribedTmpls.includes(templateId)) {
-                const res = await sendSubscribeMsg({
-                  openid,
-                  templateId,
-                  data: {
-                    car_number11: { value: waitingTask.plate_number },
-                    number3: { value: String(queuePosition) }
-                  }
-                });
-                
-                if (res.errCode === 0) {
-                  console.log('✅ 排队进度通知发送成功');
-                } else {
-                  console.error('❌ 排队进度通知发送失败:', res.errMsg);
-                }
-              }
-            }
-          } catch (err) {
-            console.error('发送排队进度通知失败：', err);
-          }
-        }
-      }
+      await afterNormalProcessingEnded(record, now);
 
       return {
         errCode: 0,
@@ -1267,6 +1285,7 @@ module.exports = {
         };
       }
 
+      const record = task.data[0];
       const now = Date.now();
 
       // 4. 更新任务为已完成状态（管理员完成不需要上传图片）
@@ -1277,104 +1296,7 @@ module.exports = {
         update_time: now
       });
 
-      // 5. 查找下一个排队中的记录（按队列号排序，最小的优先）
-      const nextRecord = await db.collection('trucks')
-        .where({
-          status: 0  // 排队中
-        })
-        .orderBy('queue_number', 'asc')
-        .limit(1)
-        .get();
-
-      console.log('下一个排队中的记录数量:', nextRecord.data.length);
-
-      // 6. 如果有下一个排队中的记录，将其状态改为"处理中"
-      if (nextRecord.data.length > 0) {
-        console.log('准备通知下一个用户:', nextRecord.data[0].plate_number);
-        const nextTask = nextRecord.data[0];
-        await db.collection('trucks').doc(nextTask._id).update({
-          status: 1,  // 处理中
-          update_time: now
-        });
-        
-        // 发送"排队到号通知"给下一个用户（同步等待）
-        try {
-          const userInfo = await db.collection('uni-id-users').doc(nextTask.user_id).get();
-          if (userInfo.data[0]?.wx_openid?.mp) {
-            const openid = userInfo.data[0].wx_openid.mp;
-            
-            const taskInfo = await db.collection('trucks').doc(nextTask._id).get();
-            const subscribedTmpls = taskInfo.data[0]?.subscribed_tmpls || [];
-            const templateId = '6dmIz67zTI9aE3PJCTrqK48vFvZOctRJDTnzFx0Wj2M';  // 排队到号通知
-            
-            if (subscribedTmpls.includes(templateId)) {
-              const res = await sendSubscribeMsg({
-                openid,
-                templateId,
-                data: {
-                  car_number22: { value: nextTask.plate_number },
-                  phrase3: { value: '请就位' }
-                }
-              });
-              
-              if (res.errCode === 0) {
-                console.log('✅ 排队到号通知发送成功（管理员完成后）');
-              } else {
-                console.error('❌ 排队到号通知发送失败:', res.errMsg);
-              }
-            }
-          }
-        } catch (err) {
-          console.error('发送排队到号通知失败：', err);
-        }
-      }
-      
-      // 7. 查询所有排队中的单子，通知前面≤3人的用户
-      const allWaitingTasks = await db.collection('trucks')
-        .where({
-          status: 0  // 排队中
-        })
-        .orderBy('queue_number', 'asc')
-        .get();
-      
-      // 遍历排队中的单子，计算每个单子前面的数量，发送"排队进度通知"
-      for (let i = 0; i < allWaitingTasks.data.length; i++) {
-        const waitingTask = allWaitingTasks.data[i];
-        const queuePosition = i + 1; // 前面的数量（不包括处理中的）
-        
-        // 如果前面≤3人，发送"排队进度通知"（同步等待）
-        if (queuePosition <= 3) {
-          try {
-            const userInfo = await db.collection('uni-id-users').doc(waitingTask.user_id).get();
-            if (userInfo.data[0]?.wx_openid?.mp) {
-              const openid = userInfo.data[0].wx_openid.mp;
-              
-              const taskInfo = await db.collection('trucks').doc(waitingTask._id).get();
-              const subscribedTmpls = taskInfo.data[0]?.subscribed_tmpls || [];
-              const templateId = 'dKt-GXFHtyyoN_6Ag-ulck-eafezp1bQ6Sz95QCu6nM';
-              
-              if (subscribedTmpls.includes(templateId)) {
-                const res = await sendSubscribeMsg({
-                  openid,
-                  templateId,
-                  data: {
-                    car_number11: { value: waitingTask.plate_number },
-                    number3: { value: String(queuePosition) }
-                  }
-                });
-                
-                if (res.errCode === 0) {
-                  console.log('✅ 排队进度通知发送成功（管理员完成后）');
-                } else {
-                  console.error('❌ 排队进度通知发送失败:', res.errMsg);
-                }
-              }
-            }
-          } catch (err) {
-            console.error('发送排队进度通知失败：', err);
-          }
-        }
-      }
+      await afterNormalProcessingEnded(record, now);
 
       return {
         errCode: 0,
@@ -1433,53 +1355,68 @@ module.exports = {
         update_time: now
       });
 
-      // 如果取消的是"处理中"的单子，需要把下一个排队中的单子变为"处理中"
-      if (wasProcessing) {
-        const nextRecord = await db.collection('trucks')
-          .where({ status: 0 })
-          .orderBy('queue_number', 'asc')
-          .limit(1)
-          .get();
-
-        if (nextRecord.data.length > 0) {
-          const nextTask = nextRecord.data[0];
-          await db.collection('trucks').doc(nextTask._id).update({
-            status: 1,
-            update_time: now
-          });
-
-          // 发送排队到号通知给下一个用户
-          try {
-            const preAccessToken = await getWxAccessToken();
-            if (preAccessToken) {
-              const userInfo = await db.collection('uni-id-users').doc(nextTask.user_id).get();
-              if (userInfo.data[0]?.wx_openid?.mp) {
-                const openid = userInfo.data[0].wx_openid.mp;
-                const taskInfo = await db.collection('trucks').doc(nextTask._id).get();
-                const subscribedTmpls = taskInfo.data[0]?.subscribed_tmpls || [];
-                const templateId = '6dmIz67zTI9aE3PJCTrqK48vFvZOctRJDTnzFx0Wj2M';
-
-                if (subscribedTmpls.includes(templateId)) {
-                  await sendSubscribeMsg({
-                    openid,
-                    templateId,
-                    data: {
-                      car_number22: { value: nextTask.plate_number },
-                      phrase3: { value: '请就位' }
-                    }
-                  });
-                }
-              }
-            }
-          } catch (err) {
-            console.error('取消后通知下一位失败：', err);
-          }
-        }
+      // 如果取消的是正常流程的"处理中"单子，才把下一个排队中升为处理中
+      if (wasProcessing && !record.admin_started) {
+        await promoteNextWaitingTask(now);
       }
 
       return { errCode: 0, errMsg: '已取消排队' };
     } catch (e) {
       console.error('取消排队失败：', e);
+      return { errCode: 500, errMsg: '操作失败：' + e.message };
+    }
+  },
+
+  /**
+   * 管理员开始处理（插队）
+   * @param {Object} params
+   * @param {String} params.id 任务ID
+   */
+  async adminStartProcessing(params) {
+    const { id } = params || {};
+
+    if (!id) {
+      return { errCode: 400, errMsg: '缺少任务ID' };
+    }
+
+    try {
+      const adminInfo = await db.collection('uni-id-users').doc(this.currentUserId).get();
+      if (!adminInfo.data[0] || adminInfo.data[0].role !== 1) {
+        return { errCode: 403, errMsg: '无权限操作' };
+      }
+
+      const task = await db.collection('trucks').doc(id).get();
+      if (!task.data[0]) {
+        return { errCode: 404, errMsg: '任务不存在' };
+      }
+
+      const record = task.data[0];
+      if (record.status !== 0) {
+        return { errCode: 400, errMsg: '只能开始处理排队中的单子' };
+      }
+
+      const now = Date.now();
+
+      await db.collection('trucks').doc(id).update({
+        status: 1,
+        admin_started: true,
+        update_time: now
+      });
+
+      try {
+        await getWxAccessToken();
+        await notifyQueueReady({
+          ...record,
+          _id: id,
+          status: 1
+        });
+      } catch (err) {
+        console.error('管理员开始处理后通知失败：', err);
+      }
+
+      return { errCode: 0, errMsg: '已开始处理' };
+    } catch (e) {
+      console.error('管理员开始处理失败：', e);
       return { errCode: 500, errMsg: '操作失败：' + e.message };
     }
   },

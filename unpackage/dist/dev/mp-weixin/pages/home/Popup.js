@@ -31,7 +31,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         return;
       }
       try {
-        const noticeObj = common_vendor.tr.importObject("notice");
+        const noticeObj = common_vendor._r.importObject("notice");
         const res = await noticeObj.markPopupAsRead({
           noticeId: noticeData.value._id
         });
@@ -63,13 +63,13 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           size: 25
         }),
         b: common_vendor.t(((_a = noticeData.value) == null ? void 0 : _a.title) || "公告"),
-        c: common_vendor.o(($event) => close()),
+        c: common_vendor.o(($event) => close(), "fd"),
         d: common_vendor.p({
           type: "closeempty",
           size: 25
         }),
         e: (_b = noticeData.value) == null ? void 0 : _b.content,
-        f: common_vendor.o(submit),
+        f: common_vendor.o(submit, "c2"),
         g: common_vendor.sr(popupRef, "76b2c95b-0", {
           "k": "popupRef"
         }),

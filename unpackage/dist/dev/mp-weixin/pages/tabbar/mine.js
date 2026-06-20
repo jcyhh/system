@@ -2,6 +2,7 @@
 const common_vendor = require("../../common/vendor.js");
 const common_assets = require("../../common/assets.js");
 require("../../store/index.js");
+const utils_loading = require("../../utils/loading.js");
 const store_modules_app = require("../../store/modules/app.js");
 if (!Array) {
   const _easycom_uni_icons2 = common_vendor.resolveComponent("uni-icons");
@@ -37,14 +38,14 @@ const _sfc_defineComponent = common_vendor.defineComponent({
           });
           return;
         }
-        common_vendor.index.showLoading({
+        utils_loading.showDelayedLoading({
           title: "登录中..."
         });
-        const userObj = common_vendor.tr.importObject("user");
+        const userObj = common_vendor._r.importObject("user");
         const res = await userObj.loginByWeixin({
           code: loginRes.code
         });
-        common_vendor.index.hideLoading();
+        utils_loading.hideDelayedLoading();
         if (res.errCode === 0) {
           appStore.setLoginInfo(res.data.userInfo, res.data.token);
           const roleName = res.data.userInfo.role === 1 ? "(管理员)" : "";
@@ -59,8 +60,8 @@ const _sfc_defineComponent = common_vendor.defineComponent({
           });
         }
       } catch (e) {
-        common_vendor.index.hideLoading();
-        common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:171", "登录失败", e);
+        utils_loading.hideDelayedLoading();
+        common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:180", "登录失败", e);
         common_vendor.index.showToast({
           title: "登录失败，请重试",
           icon: "none"
@@ -92,6 +93,11 @@ const _sfc_defineComponent = common_vendor.defineComponent({
         url: "/pages/mine/rule"
       });
     };
+    const goAdminRule = () => {
+      common_vendor.index.navigateTo({
+        url: "/pages/mine/admin-rule"
+      });
+    };
     const copy = () => {
       common_vendor.index.setClipboardData({
         data: userId.value
@@ -116,17 +122,17 @@ const _sfc_defineComponent = common_vendor.defineComponent({
         });
         return;
       }
-      common_vendor.index.showLoading({
+      utils_loading.showDelayedLoading({
         title: "设置中..."
       });
       try {
-        const userObj = common_vendor.tr.importObject("user");
+        const userObj = common_vendor._r.importObject("user");
         const res = await userObj.setUserRole({
           userId: userId2,
           role: 1
           // 1=管理员
         });
-        common_vendor.index.hideLoading();
+        utils_loading.hideDelayedLoading();
         if (res.errCode === 0) {
           common_vendor.index.showToast({
             title: "已添加为管理员",
@@ -140,8 +146,8 @@ const _sfc_defineComponent = common_vendor.defineComponent({
           });
         }
       } catch (e) {
-        common_vendor.index.hideLoading();
-        common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:268", "设置管理员失败", e);
+        utils_loading.hideDelayedLoading();
+        common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:283", "设置管理员失败", e);
         common_vendor.index.showToast({
           title: e.message || "设置失败，请重试",
           icon: "none"
@@ -164,21 +170,21 @@ const _sfc_defineComponent = common_vendor.defineComponent({
         content: confirmContent,
         success: async (res) => {
           if (res.confirm) {
-            common_vendor.index.showLoading({
+            utils_loading.showDelayedLoading({
               title: "移除中..."
             });
             try {
-              const userObj = common_vendor.tr.importObject("user");
+              const userObj = common_vendor._r.importObject("user");
               const result = await userObj.setUserRole({
                 userId: targetId,
                 role: 0
                 // 0=普通用户
               });
-              common_vendor.index.hideLoading();
+              utils_loading.hideDelayedLoading();
               if (result.errCode === 0) {
                 closeDialog();
                 if (isSelf) {
-                  common_vendor.index.__f__("log", "at pages/tabbar/mine.vue:318", "移除了自己的管理员权限，更新本地状态");
+                  common_vendor.index.__f__("log", "at pages/tabbar/mine.vue:333", "移除了自己的管理员权限，更新本地状态");
                   appStore.setRole(0);
                   common_vendor.index.showToast({
                     title: "已移除管理员权限，页面已更新",
@@ -187,13 +193,13 @@ const _sfc_defineComponent = common_vendor.defineComponent({
                   });
                   setTimeout(async () => {
                     try {
-                      const userObj2 = common_vendor.tr.importObject("user");
+                      const userObj2 = common_vendor._r.importObject("user");
                       const userInfo = await userObj2.getUserInfo();
                       if (userInfo.errCode === 0) {
                         appStore.setRole(userInfo.data.role);
                       }
                     } catch (e) {
-                      common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:337", "刷新用户信息失败", e);
+                      common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:352", "刷新用户信息失败", e);
                     }
                   }, 500);
                 } else {
@@ -209,8 +215,8 @@ const _sfc_defineComponent = common_vendor.defineComponent({
                 });
               }
             } catch (e) {
-              common_vendor.index.hideLoading();
-              common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:354", "移除管理员失败", e);
+              utils_loading.hideDelayedLoading();
+              common_vendor.index.__f__("error", "at pages/tabbar/mine.vue:369", "移除管理员失败", e);
               common_vendor.index.showToast({
                 title: e.message || "移除失败，请重试",
                 icon: "none"
@@ -228,17 +234,17 @@ const _sfc_defineComponent = common_vendor.defineComponent({
       }, common_vendor.unref(isLogin) ? {
         d: common_vendor.t(common_vendor.unref(userId).slice(0, 8)),
         e: common_assets._imports_1$1,
-        f: common_vendor.o(copy)
+        f: common_vendor.o(copy, "6c")
       } : {}, {
-        g: common_vendor.o(handleLogin),
+        g: common_vendor.o(handleLogin, "56"),
         h: common_vendor.unref(role) == 1
       }, common_vendor.unref(role) == 1 ? {
         i: common_assets._imports_2$2,
-        j: common_vendor.o(($event) => goLog(0)),
+        j: common_vendor.o(($event) => goLog(0), "6e"),
         k: common_assets._imports_3$1,
-        l: common_vendor.o(($event) => goLog(1)),
+        l: common_vendor.o(($event) => goLog(1), "86"),
         m: common_assets._imports_4,
-        n: common_vendor.o(($event) => goLog(2))
+        n: common_vendor.o(($event) => goLog(2), "29")
       } : {}, {
         o: common_vendor.unref(role) === 1
       }, common_vendor.unref(role) === 1 ? {
@@ -252,7 +258,7 @@ const _sfc_defineComponent = common_vendor.defineComponent({
           color: "#999999",
           size: 20
         }),
-        r: common_vendor.o(showAddAdminDialog)
+        r: common_vendor.o(showAddAdminDialog, "65")
       } : {}, {
         s: common_vendor.unref(role) === 1
       }, common_vendor.unref(role) === 1 ? {
@@ -266,7 +272,7 @@ const _sfc_defineComponent = common_vendor.defineComponent({
           color: "#999999",
           size: 20
         }),
-        w: common_vendor.o(goSystem)
+        w: common_vendor.o(goSystem, "13")
       } : {}, {
         x: common_assets._imports_5,
         y: common_vendor.p({
@@ -280,22 +286,32 @@ const _sfc_defineComponent = common_vendor.defineComponent({
           color: "#999999",
           size: 20
         }),
-        B: common_vendor.o(gorule),
-        C: showDialog.value
+        B: common_vendor.o(gorule, "bb"),
+        C: common_vendor.unref(role) === 1
+      }, common_vendor.unref(role) === 1 ? {
+        D: common_assets._imports_6,
+        E: common_vendor.p({
+          type: "right",
+          color: "#999999",
+          size: 20
+        }),
+        F: common_vendor.o(goAdminRule, "95")
+      } : {}, {
+        G: showDialog.value
       }, showDialog.value ? {
-        D: common_vendor.p({
+        H: common_vendor.p({
           type: "closeempty",
           size: 24,
           color: "#999999"
         }),
-        E: common_vendor.o(closeDialog),
-        F: targetUserId.value,
-        G: common_vendor.o(($event) => targetUserId.value = $event.detail.value),
-        H: common_vendor.o(confirmRemoveAdmin),
-        I: common_vendor.o(confirmAddAdmin),
-        J: common_vendor.o(() => {
-        }),
-        K: common_vendor.o(closeDialog)
+        I: common_vendor.o(closeDialog, "6c"),
+        J: targetUserId.value,
+        K: common_vendor.o(($event) => targetUserId.value = $event.detail.value, "71"),
+        L: common_vendor.o(confirmRemoveAdmin, "75"),
+        M: common_vendor.o(confirmAddAdmin, "2a"),
+        N: common_vendor.o(() => {
+        }, "f7"),
+        O: common_vendor.o(closeDialog, "dd")
       } : {});
     };
   }

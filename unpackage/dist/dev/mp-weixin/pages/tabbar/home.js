@@ -41,7 +41,7 @@ const _sfc_defineComponent = common_vendor.defineComponent({
     });
     const loadNoticeList = async () => {
       try {
-        const noticeObj = common_vendor.tr.importObject("notice");
+        const noticeObj = common_vendor._r.importObject("notice");
         const res = await noticeObj.getList({ limit: 5 });
         if (res.errCode === 0) {
           noticeList.value = res.data.list;
@@ -54,7 +54,7 @@ const _sfc_defineComponent = common_vendor.defineComponent({
       if (!appStore.isLogin)
         return;
       try {
-        const noticeObj = common_vendor.tr.importObject("notice");
+        const noticeObj = common_vendor._r.importObject("notice");
         const res = await noticeObj.getPopupNotice();
         if (res.errCode === 0 && res.data) {
           setTimeout(() => {
@@ -106,7 +106,7 @@ const _sfc_defineComponent = common_vendor.defineComponent({
         return;
       }
       try {
-        const truckObj = common_vendor.tr.importObject("truck");
+        const truckObj = common_vendor._r.importObject("truck");
         const res = await truckObj.getCurrentTask();
         if (res.errCode === 0 && res.data) {
           currentTask.value = res.data;
@@ -129,7 +129,7 @@ const _sfc_defineComponent = common_vendor.defineComponent({
           page.value = 1;
           hasMore.value = true;
         }
-        const truckObj = common_vendor.tr.importObject("truck");
+        const truckObj = common_vendor._r.importObject("truck");
         const res = await truckObj.getQueueList({
           page: page.value,
           pageSize
@@ -253,13 +253,13 @@ const _sfc_defineComponent = common_vendor.defineComponent({
             b: item._id
           };
         }),
-        d: common_vendor.o(goNotice)
+        d: common_vendor.o(goNotice, "06")
       } : {}, {
         e: common_assets._imports_0$1,
         f: common_vendor.t(!currentTask.value ? "我要排队" : currentTask.value.status === 1 ? "处理中" : "修改信息"),
-        g: common_vendor.o(goApply),
+        g: common_vendor.o(goApply, "c0"),
         h: common_assets._imports_1,
-        i: common_vendor.o(openFinish),
+        i: common_vendor.o(openFinish, "02"),
         j: common_assets._imports_2,
         k: common_vendor.t(queueStats.value.total),
         l: common_vendor.f(queueList.value, (item, index, i0) => {
@@ -301,7 +301,7 @@ const _sfc_defineComponent = common_vendor.defineComponent({
         w: common_vendor.o(($event) => {
           var _a;
           return (_a = popupRef.value) == null ? void 0 : _a.close();
-        }),
+        }, "be"),
         x: common_vendor.p({
           type: "closeempty",
           size: 25

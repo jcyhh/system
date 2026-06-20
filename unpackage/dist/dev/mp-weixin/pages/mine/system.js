@@ -1,6 +1,7 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
 require("../../store/index.js");
+const utils_loading = require("../../utils/loading.js");
 const store_modules_app = require("../../store/modules/app.js");
 const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
   __name: "system",
@@ -11,7 +12,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
     const loading = common_vendor.ref(false);
     const loadQueueSwitch = async () => {
       try {
-        const db = common_vendor.tr.database();
+        const db = common_vendor._r.database();
         const res = await db.collection("system_info").where({
           key: "queue_switch"
         }).limit(1).get();
@@ -27,7 +28,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           });
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/mine/system.vue:72", "加载排队开关失败：", e);
+        common_vendor.index.__f__("error", "at pages/mine/system.vue:73", "加载排队开关失败：", e);
         common_vendor.index.showToast({
           title: "加载失败",
           icon: "none"
@@ -55,24 +56,24 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         return;
       }
       loading.value = true;
-      common_vendor.index.showLoading({
+      utils_loading.showDelayedLoading({
         title: "保存中..."
       });
       try {
-        const db = common_vendor.tr.database();
+        const db = common_vendor._r.database();
         await db.collection("system_info").doc(switchId.value).update({
           content: value ? "true" : "false",
           update_time: Date.now()
         });
         queueSwitch.value = value;
-        common_vendor.index.hideLoading();
+        utils_loading.hideDelayedLoading();
         common_vendor.index.showToast({
           title: value ? "已开启排队" : "已关闭排队",
           icon: "success"
         });
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/mine/system.vue:126", "更新排队开关失败：", e);
-        common_vendor.index.hideLoading();
+        common_vendor.index.__f__("error", "at pages/mine/system.vue:127", "更新排队开关失败：", e);
+        utils_loading.hideDelayedLoading();
         common_vendor.index.showToast({
           title: "保存失败",
           icon: "none"
@@ -110,7 +111,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         a: common_vendor.t(queueSwitch.value ? "已开启" : "已关闭"),
         b: common_vendor.n(queueSwitch.value ? "status-on" : "status-off"),
         c: queueSwitch.value,
-        d: common_vendor.o(onSwitchChange),
+        d: common_vendor.o(onSwitchChange, "25"),
         e: loading.value
       };
     };

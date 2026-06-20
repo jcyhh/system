@@ -9,7 +9,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
     const loadNoticeDetail = async (id) => {
       try {
         isLoading.value = true;
-        const noticeObj = common_vendor.tr.importObject("notice");
+        const noticeObj = common_vendor._r.importObject("notice");
         const res = await noticeObj.getDetail({ id });
         if (res.errCode === 0) {
           noticeDetail.value = res.data;

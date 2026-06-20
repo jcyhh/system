@@ -12,6 +12,7 @@ if (!Math) {
   "./pages/mine/finished.js";
   "./pages/mine/detail.js";
   "./pages/mine/rule.js";
+  "./pages/mine/admin-rule.js";
   "./pages/notice/list.js";
   "./pages/notice/detail.js";
   "./pages/notice/edit.js";
@@ -39,7 +40,7 @@ const _sfc_main = {
         return;
       }
       try {
-        const userObj = common_vendor.tr.importObject("user");
+        const userObj = common_vendor._r.importObject("user");
         const res = await userObj.getUserInfo();
         if (res.errCode === 0) {
           appStore.setLoginInfo(res.data, appStore.token);

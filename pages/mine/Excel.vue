@@ -37,6 +37,7 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue';
+import { hideDelayedLoading, showDelayedLoading } from '../../utils/loading';
 
 const emits = defineEmits(['submit'])
 
@@ -73,7 +74,7 @@ const submit = async () => {
 	}
 	
 	try {
-		uni.showLoading({ title: '导出中...' })
+		showDelayedLoading({ title: '导出中...' })
 		
 		// 计算时间戳（开始日期08:00 到 结束日期08:00）
 		// 使用iOS兼容的日期格式
@@ -87,7 +88,7 @@ const submit = async () => {
 			end_time
 		})
 		
-		uni.hideLoading()
+		hideDelayedLoading()
 		
 		if (res.errCode === 0) {
 			// 下载临时文件
@@ -137,7 +138,7 @@ const submit = async () => {
 			})
 		}
 	} catch (e: any) {
-		uni.hideLoading()
+		hideDelayedLoading()
 		console.error('导出失败：', e)
 		uni.showToast({
 			title: e.message || '导出失败',

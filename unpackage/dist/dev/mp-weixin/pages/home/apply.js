@@ -1,6 +1,7 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
 require("../../store/index.js");
+const utils_loading = require("../../utils/loading.js");
 const store_modules_app = require("../../store/modules/app.js");
 if (!Array) {
   const _easycom_uni_icons2 = common_vendor.resolveComponent("uni-icons");
@@ -77,7 +78,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         return;
       }
       try {
-        const truckObj = common_vendor.tr.importObject("truck");
+        const truckObj = common_vendor._r.importObject("truck");
         const res = await truckObj.getCurrentTask();
         if (res.errCode === 0 && res.data) {
           const task = res.data;
@@ -106,7 +107,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           resetForm();
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/home/apply.vue:206", "查询失败：", e);
+        common_vendor.index.__f__("error", "at pages/home/apply.vue:207", "查询失败：", e);
       }
     };
     const resetForm = () => {
@@ -133,27 +134,27 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         sourceType: ["album", "camera"],
         success: async (res) => {
           const tempFilePath = res.tempFilePaths[0];
-          common_vendor.index.showLoading({
+          utils_loading.showDelayedLoading({
             title: "上传中..."
           });
           try {
-            const uploadRes = await common_vendor.tr.uploadFile({
+            const uploadRes = await common_vendor._r.uploadFile({
               filePath: tempFilePath,
               cloudPath: `trucks/${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`
             });
             formData.value.photo = uploadRes.fileID;
-            common_vendor.index.hideLoading();
+            utils_loading.hideDelayedLoading();
             common_vendor.index.showToast({
               title: "上传成功",
               icon: "success"
             });
           } catch (e) {
-            common_vendor.index.hideLoading();
+            utils_loading.hideDelayedLoading();
             common_vendor.index.showToast({
               title: "上传失败",
               icon: "none"
             });
-            common_vendor.index.__f__("error", "at pages/home/apply.vue:264", "上传失败：", e);
+            common_vendor.index.__f__("error", "at pages/home/apply.vue:265", "上传失败：", e);
           }
         }
       });
@@ -252,7 +253,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         common_vendor.index.requestSubscribeMessage({
           tmplIds,
           success: (res) => {
-            common_vendor.index.__f__("log", "at pages/home/apply.vue:381", "订阅消息授权结果：", res);
+            common_vendor.index.__f__("log", "at pages/home/apply.vue:382", "订阅消息授权结果：", res);
             const acceptedTmpls = [];
             tmplIds.forEach((id) => {
               if (res[id] === "accept") {
@@ -262,7 +263,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
             resolve(acceptedTmpls);
           },
           fail: (err) => {
-            common_vendor.index.__f__("log", "at pages/home/apply.vue:392", "订阅消息授权失败：", err);
+            common_vendor.index.__f__("log", "at pages/home/apply.vue:393", "订阅消息授权失败：", err);
             resolve([]);
           }
         });
@@ -270,7 +271,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
     };
     const checkQueueSwitch = async () => {
       try {
-        const db = common_vendor.tr.database();
+        const db = common_vendor._r.database();
         const res = await db.collection("system_info").where({
           key: "queue_switch",
           is_published: true
@@ -281,7 +282,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         }
         return true;
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/home/apply.vue:423", "检查排队开关失败：", e);
+        common_vendor.index.__f__("error", "at pages/home/apply.vue:424", "检查排队开关失败：", e);
         return true;
       }
     };
@@ -318,11 +319,11 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
       if (!isEditMode.value) {
         subscribedTmpls = await requestSubscribe();
       }
-      common_vendor.index.showLoading({
+      utils_loading.showDelayedLoading({
         title: isEditMode.value ? "修改中..." : "提交中..."
       });
       try {
-        const truckObj = common_vendor.tr.importObject("truck");
+        const truckObj = common_vendor._r.importObject("truck");
         let res;
         if (isEditMode.value) {
           res = await truckObj.updateTask({
@@ -336,7 +337,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
             // 传递用户授权的模板ID
           });
         }
-        common_vendor.index.hideLoading();
+        utils_loading.hideDelayedLoading();
         if (res.errCode === 0) {
           common_vendor.index.showModal({
             title: isEditMode.value ? "修改成功" : "登记成功",
@@ -371,12 +372,12 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           }
         }
       } catch (e) {
-        common_vendor.index.hideLoading();
+        utils_loading.hideDelayedLoading();
         common_vendor.index.showToast({
           title: e.message || "提交失败",
           icon: "none"
         });
-        common_vendor.index.__f__("error", "at pages/home/apply.vue:535", "提交失败：", e);
+        common_vendor.index.__f__("error", "at pages/home/apply.vue:536", "提交失败：", e);
       }
     };
     const cancelQueue = () => {
@@ -387,11 +388,11 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         success: async (res) => {
           if (!res.confirm)
             return;
-          common_vendor.index.showLoading({ title: "取消中..." });
+          utils_loading.showDelayedLoading({ title: "取消中..." });
           try {
-            const truckObj = common_vendor.tr.importObject("truck");
+            const truckObj = common_vendor._r.importObject("truck");
             const result = await truckObj.cancelTask({ id: currentTaskId.value });
-            common_vendor.index.hideLoading();
+            utils_loading.hideDelayedLoading();
             if (result.errCode === 0) {
               common_vendor.index.showToast({ title: "已取消排队", icon: "success" });
               setTimeout(() => {
@@ -401,7 +402,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
               common_vendor.index.showToast({ title: result.errMsg || "取消失败", icon: "none" });
             }
           } catch (e) {
-            common_vendor.index.hideLoading();
+            utils_loading.hideDelayedLoading();
             common_vendor.index.showToast({ title: e.message || "取消失败", icon: "none" });
           }
         }
@@ -410,18 +411,18 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
     return (_ctx, _cache) => {
       return common_vendor.e({
         a: formData.value.driver_name,
-        b: common_vendor.o(($event) => formData.value.driver_name = $event.detail.value),
+        b: common_vendor.o(($event) => formData.value.driver_name = $event.detail.value, "c0"),
         c: formData.value.phone,
-        d: common_vendor.o(($event) => formData.value.phone = $event.detail.value),
+        d: common_vendor.o(($event) => formData.value.phone = $event.detail.value, "5f"),
         e: formData.value.plate_number,
-        f: common_vendor.o(($event) => formData.value.plate_number = $event.detail.value),
+        f: common_vendor.o(($event) => formData.value.plate_number = $event.detail.value, "a5"),
         g: common_vendor.t(types[typeCur.value]),
         h: common_vendor.p({
           type: "down",
           size: 20,
           color: "#999999"
         }),
-        i: common_vendor.o(typesChange),
+        i: common_vendor.o(typesChange, "30"),
         j: typeCur.value,
         k: types,
         l: formData.value.operation_type == 0
@@ -439,7 +440,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         })
       }, {
         o: common_vendor.n(formData.value.operation_type == 0 ? "main" : ""),
-        p: common_vendor.o(($event) => formData.value.operation_type = 0),
+        p: common_vendor.o(($event) => formData.value.operation_type = 0, "32"),
         q: formData.value.operation_type == 1
       }, formData.value.operation_type == 1 ? {
         r: common_vendor.p({
@@ -455,7 +456,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         })
       }, {
         t: common_vendor.n(formData.value.operation_type == 1 ? "main" : ""),
-        v: common_vendor.o(($event) => formData.value.operation_type = 1),
+        v: common_vendor.o(($event) => formData.value.operation_type = 1, "40"),
         w: formData.value.operation_type == 1
       }, formData.value.operation_type == 1 ? common_vendor.e({
         x: cityName.value
@@ -470,9 +471,9 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         A: common_vendor.o(($event) => {
           var _a;
           return (_a = cityRef.value) == null ? void 0 : _a.show();
-        }),
+        }, "46"),
         B: formData.value.loading_address,
-        C: common_vendor.o(($event) => formData.value.loading_address = $event.detail.value)
+        C: common_vendor.o(($event) => formData.value.loading_address = $event.detail.value, "fe")
       }) : {}, {
         D: !formData.value.photo
       }, !formData.value.photo ? {
@@ -481,7 +482,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           size: 50,
           color: "#999999"
         }),
-        F: common_vendor.o(chooseImage)
+        F: common_vendor.o(chooseImage, "2b")
       } : {
         G: formData.value.photo,
         H: common_vendor.p({
@@ -489,7 +490,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           size: 20,
           color: "#FFFFFF"
         }),
-        I: common_vendor.o(deleteImage)
+        I: common_vendor.o(deleteImage, "34")
       }, {
         J: checked.value
       }, checked.value ? {
@@ -501,19 +502,19 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           type: "circle"
         })
       }, {
-        M: common_vendor.o(goUser),
-        N: common_vendor.o(goPrivate),
-        O: common_vendor.o(($event) => checked.value = !checked.value),
+        M: common_vendor.o(goUser, "1d"),
+        N: common_vendor.o(goPrivate, "0c"),
+        O: common_vendor.o(($event) => checked.value = !checked.value, "fa"),
         P: common_vendor.t(isEditMode.value ? "保存修改" : "提交排队"),
-        Q: common_vendor.o(submit),
+        Q: common_vendor.o(submit, "06"),
         R: isEditMode.value && currentTaskStatus.value === 0
       }, isEditMode.value && currentTaskStatus.value === 0 ? {
-        S: common_vendor.o(cancelQueue)
+        S: common_vendor.o(cancelQueue, "06")
       } : {}, {
         T: common_vendor.sr(cityRef, "5fa7e9e6-10", {
           "k": "cityRef"
         }),
-        U: common_vendor.o(onchange),
+        U: common_vendor.o(onchange, "60"),
         V: common_vendor.p({
           placeholder: "请选择地址",
           ["popup-title"]: "请选择城市",

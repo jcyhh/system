@@ -20,7 +20,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           page.value = 1;
           hasMore.value = true;
         }
-        const truckObj = common_vendor.tr.importObject("truck");
+        const truckObj = common_vendor._r.importObject("truck");
         const res = await truckObj.getList({
           status: 0,
           // 排队中

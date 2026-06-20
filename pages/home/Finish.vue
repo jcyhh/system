@@ -32,6 +32,7 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue';
+import { hideDelayedLoading, showDelayedLoading } from '../../utils/loading';
 
 const popupRef = ref()
 const photoUrl = ref('')
@@ -58,7 +59,7 @@ const chooseImage = () => {
 		success: async (res) => {
 			const tempFilePath = res.tempFilePaths[0]
 			
-			uni.showLoading({
+			showDelayedLoading({
 				title: '上传中...'
 			})
 			
@@ -70,14 +71,14 @@ const chooseImage = () => {
 				})
 				
 				photoUrl.value = uploadRes.fileID
-				uni.hideLoading()
+				hideDelayedLoading()
 				
 				uni.showToast({
 					title: '上传成功',
 					icon: 'success'
 				})
 			} catch (e) {
-				uni.hideLoading()
+				hideDelayedLoading()
 				uni.showToast({
 					title: '上传失败',
 					icon: 'none'
@@ -111,7 +112,7 @@ const submit = async () => {
 		return
 	}
 	
-	uni.showLoading({
+	showDelayedLoading({
 		title: '提交中...'
 	})
 	
@@ -122,7 +123,7 @@ const submit = async () => {
 			complete_photo: photoUrl.value
 		})
 		
-		uni.hideLoading()
+		hideDelayedLoading()
 		
 		if (res.errCode === 0) {
 			uni.showToast({
@@ -142,7 +143,7 @@ const submit = async () => {
 			})
 		}
 	} catch (e: any) {
-		uni.hideLoading()
+		hideDelayedLoading()
 		uni.showToast({
 			title: e.message || '提交失败',
 			icon: 'none'

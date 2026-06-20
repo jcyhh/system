@@ -1,5 +1,6 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
+const utils_loading = require("../../utils/loading.js");
 if (!Array) {
   const _easycom_uni_icons2 = common_vendor.resolveComponent("uni-icons");
   const _easycom_uni_popup2 = common_vendor.resolveComponent("uni-popup");
@@ -35,27 +36,27 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         sourceType: ["album", "camera"],
         success: async (res) => {
           const tempFilePath = res.tempFilePaths[0];
-          common_vendor.index.showLoading({
+          utils_loading.showDelayedLoading({
             title: "上传中..."
           });
           try {
-            const uploadRes = await common_vendor.tr.uploadFile({
+            const uploadRes = await common_vendor._r.uploadFile({
               filePath: tempFilePath,
               cloudPath: `trucks/complete_${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`
             });
             photoUrl.value = uploadRes.fileID;
-            common_vendor.index.hideLoading();
+            utils_loading.hideDelayedLoading();
             common_vendor.index.showToast({
               title: "上传成功",
               icon: "success"
             });
           } catch (e) {
-            common_vendor.index.hideLoading();
+            utils_loading.hideDelayedLoading();
             common_vendor.index.showToast({
               title: "上传失败",
               icon: "none"
             });
-            common_vendor.index.__f__("error", "at pages/home/Finish.vue:85", "上传失败：", e);
+            common_vendor.index.__f__("error", "at pages/home/Finish.vue:86", "上传失败：", e);
           }
         }
       });
@@ -78,16 +79,16 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         });
         return;
       }
-      common_vendor.index.showLoading({
+      utils_loading.showDelayedLoading({
         title: "提交中..."
       });
       try {
-        const truckObj = common_vendor.tr.importObject("truck");
+        const truckObj = common_vendor._r.importObject("truck");
         const res = await truckObj.complete({
           id: taskId.value,
           complete_photo: photoUrl.value
         });
-        common_vendor.index.hideLoading();
+        utils_loading.hideDelayedLoading();
         if (res.errCode === 0) {
           common_vendor.index.showToast({
             title: "操作成功",
@@ -102,12 +103,12 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           });
         }
       } catch (e) {
-        common_vendor.index.hideLoading();
+        utils_loading.hideDelayedLoading();
         common_vendor.index.showToast({
           title: e.message || "提交失败",
           icon: "none"
         });
-        common_vendor.index.__f__("error", "at pages/home/Finish.vue:150", "提交失败：", e);
+        common_vendor.index.__f__("error", "at pages/home/Finish.vue:151", "提交失败：", e);
       }
     };
     __expose({
@@ -121,7 +122,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           color: "#FFFFFF",
           size: 25
         }),
-        b: common_vendor.o(($event) => close()),
+        b: common_vendor.o(($event) => close(), "f0"),
         c: common_vendor.p({
           type: "closeempty",
           size: 25
@@ -133,7 +134,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           size: 50,
           color: "#999999"
         }),
-        f: common_vendor.o(chooseImage)
+        f: common_vendor.o(chooseImage, "a0")
       } : {
         g: photoUrl.value,
         h: common_vendor.p({
@@ -141,9 +142,9 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           size: 20,
           color: "#FFFFFF"
         }),
-        i: common_vendor.o(deleteImage)
+        i: common_vendor.o(deleteImage, "48")
       }, {
-        j: common_vendor.o(submit),
+        j: common_vendor.o(submit, "da"),
         k: !photoUrl.value ? 1 : "",
         l: common_vendor.sr(popupRef, "8d1dbdbc-0", {
           "k": "popupRef"

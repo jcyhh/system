@@ -31,6 +31,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
+import { hideDelayedLoading, showDelayedLoading } from '../../utils/loading';
 
 const isEdit = ref(false)
 const noticeId = ref('')
@@ -99,7 +100,7 @@ const submitForm = async () => {
 	}
 	
 	try {
-		uni.showLoading({
+		showDelayedLoading({
 			title: isEdit.value ? '保存中...' : '创建中...'
 		})
 		
@@ -125,7 +126,7 @@ const submitForm = async () => {
 			})
 		}
 		
-		uni.hideLoading()
+		hideDelayedLoading()
 		
 		if (result.errCode === 0) {
 			uni.showToast({
@@ -147,7 +148,7 @@ const submitForm = async () => {
 			})
 		}
 	} catch (e: any) {
-		uni.hideLoading()
+		hideDelayedLoading()
 		console.error('操作失败：', e)
 		uni.showToast({
 			title: e.message || '操作失败',

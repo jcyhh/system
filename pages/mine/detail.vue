@@ -97,6 +97,7 @@
 					}">
 							{{ statusText }}
 						</view>
+						<view class="admin-tag ml10" v-if="isAdmin && detailData.admin_started">插队</view>
 				</view>
 			</view>
 			<view class="flex mt40">
@@ -112,8 +113,10 @@
 		</view>
 		</template>
 	
-		<view class="mt30 pl30 pr30" v-if="detailData && detailData.status === 0 && isAdmin">
-			<view class="cancel-btn flex jc ac" @click="adminCancel">取消排队</view>
+		<view class="mt30 pl30 pr30" v-if="detailData && isAdmin">
+			<view class="start-btn flex jc ac mb20" v-if="detailData.status === 0" @click="adminStart">开始处理</view>
+			<view class="complete-btn flex jc ac mb20" v-if="detailData.status === 1" @click="adminComplete">确认完成</view>
+			<view class="cancel-btn flex jc ac" v-if="detailData.status === 0" @click="adminCancel">取消排队</view>
 		</view>
 		
 	</view>
@@ -123,6 +126,7 @@
 import { ref, computed } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
 import { useAppStore } from '@/store';
+import { hideDelayedLoading, showDelayedLoading } from '../../utils/loading';
 
 const appStore = useAppStore()
 const detailData = ref<any>(null)
@@ -143,11 +147,11 @@ const statusText = computed(() => {
 // 加载详情数据
 const loadDetail = async (id: string) => {
 	try {
-		uni.showLoading({ title: '加载中...' })
+		showDelayedLoading({ title: '加载中...' })
 		const truckObj = uniCloud.importObject('truck')
 		const res = await truckObj.getDetail({ id })
 		
-		uni.hideLoading()
+		hideDelayedLoading()
 		if (res.errCode === 0) {
 			detailData.value = res.data
 		} else {
@@ -157,7 +161,7 @@ const loadDetail = async (id: string) => {
 			})
 		}
 	} catch (e: any) {
-		uni.hideLoading()
+		hideDelayedLoading()
 		console.error('获取详情失败：', e)
 		uni.showToast({
 			title: e.message || '获取失败',
@@ -194,6 +198,64 @@ const copy = (text: string) => {
 	})
 }
 
+// 管理员开始处理（插队）
+const adminStart = () => {
+	uni.showModal({
+		title: '提示',
+		content: '确定将该排队订单设为处理中吗？',
+		success: async (res) => {
+			if (!res.confirm) return
+			
+			showDelayedLoading({ title: '处理中...' })
+			try {
+				const truckObj = uniCloud.importObject('truck')
+				const result = await truckObj.adminStartProcessing({ id: detailData.value._id })
+				hideDelayedLoading()
+				
+				if (result.errCode === 0) {
+					uni.showToast({ title: '已开始处理', icon: 'success' })
+					loadDetail(detailData.value._id)
+				} else {
+					uni.showToast({ title: result.errMsg || '操作失败', icon: 'none' })
+				}
+			} catch (e: any) {
+				hideDelayedLoading()
+				uni.showToast({ title: e.message || '操作失败', icon: 'none' })
+			}
+		}
+	})
+}
+
+// 管理员确认完成
+const adminComplete = () => {
+	uni.showModal({
+		title: '确认完成',
+		content: '确定要完成该订单吗？',
+		success: async (res) => {
+			if (!res.confirm) return
+			
+			showDelayedLoading({ title: '处理中...' })
+			try {
+				const truckObj = uniCloud.importObject('truck')
+				const result = await truckObj.adminComplete({ id: detailData.value._id })
+				hideDelayedLoading()
+				
+				if (result.errCode === 0) {
+					uni.showToast({ title: '操作成功', icon: 'success' })
+					setTimeout(() => {
+						uni.navigateBack()
+					}, 1000)
+				} else {
+					uni.showToast({ title: result.errMsg || '操作失败', icon: 'none' })
+				}
+			} catch (e: any) {
+				hideDelayedLoading()
+				uni.showToast({ title: e.message || '操作失败', icon: 'none' })
+			}
+		}
+	})
+}
+
 // 管理员取消排队
 const adminCancel = () => {
 	uni.showModal({
@@ -203,11 +265,11 @@ const adminCancel = () => {
 		success: async (res) => {
 			if (!res.confirm) return
 			
-			uni.showLoading({ title: '取消中...' })
+			showDelayedLoading({ title: '取消中...' })
 			try {
 				const truckObj = uniCloud.importObject('truck')
 				const result = await truckObj.adminCancelTask({ id: detailData.value._id })
-				uni.hideLoading()
+				hideDelayedLoading()
 				
 				if (result.errCode === 0) {
 					uni.showToast({ title: '已取消', icon: 'success' })
@@ -218,7 +280,7 @@ const adminCancel = () => {
 					uni.showToast({ title: result.errMsg || '取消失败', icon: 'none' })
 				}
 			} catch (e: any) {
-				uni.hideLoading()
+				hideDelayedLoading()
 				uni.showToast({ title: e.message || '取消失败', icon: 'none' })
 			}
 		}
@@ -252,6 +314,22 @@ onLoad((options: any) => {
 }
 .red{
 	color: #e43d33;
+}
+.admin-tag{
+	display: inline-block;
+	padding: 2rpx 12rpx;
+	border-radius: 8rpx;
+	background-color: #fff7e6;
+	color: #fa8c16;
+	font-size: 22rpx;
+}
+.start-btn,
+.complete-btn{
+	height: 88rpx;
+	border-radius: 44rpx;
+	background-color: $main-color;
+	color: #FFFFFF;
+	font-size: 30rpx;
 }
 .cancel-btn{
 	height: 88rpx;

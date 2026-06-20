@@ -34,7 +34,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           page.value = 1;
           hasMore.value = true;
         }
-        const noticeObj = common_vendor.tr.importObject("notice");
+        const noticeObj = common_vendor._r.importObject("notice");
         const res = await noticeObj.getList({
           page: page.value,
           pageSize,
@@ -100,7 +100,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         success: async (res) => {
           if (res.confirm) {
             try {
-              const noticeObj = common_vendor.tr.importObject("notice");
+              const noticeObj = common_vendor._r.importObject("notice");
               const result = await noticeObj.delete({ id: item._id });
               if (result.errCode === 0) {
                 common_vendor.index.showToast({
@@ -194,7 +194,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
       }, isAdmin.value ? {} : {}, {
         i: isAdmin.value
       }, isAdmin.value ? {
-        j: common_vendor.o(addNotice)
+        j: common_vendor.o(addNotice, "dc")
       } : {});
     };
   }

@@ -87,10 +87,16 @@
     },
     "status": {
       "bsonType": "int",
-      "description": "状态：0-排队中，1-处理中，2-已完成",
+      "description": "状态：0-排队中，1-处理中，2-已完成，3-已取消",
       "title": "状态",
       "defaultValue": 0,
-      "enum": [0, 1, 2]
+      "enum": [0, 1, 2, 3]
+    },
+    "admin_started": {
+      "bsonType": "bool",
+      "description": "是否管理员插队开始处理，true表示插队单",
+      "title": "管理员插队",
+      "defaultValue": false
     },
     "queue_number": {
       "bsonType": "int",

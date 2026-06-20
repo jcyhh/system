@@ -1,5 +1,6 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
+const utils_loading = require("../../utils/loading.js");
 const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
   __name: "edit",
   setup(__props) {
@@ -19,7 +20,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
     };
     const loadNoticeDetail = async (id) => {
       try {
-        const noticeObj = common_vendor.tr.importObject("notice");
+        const noticeObj = common_vendor._r.importObject("notice");
         const res = await noticeObj.getDetail({ id });
         if (res.errCode === 0) {
           formData.value = {
@@ -35,7 +36,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           });
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/notice/edit.vue:74", "获取公告详情失败：", e);
+        common_vendor.index.__f__("error", "at pages/notice/edit.vue:75", "获取公告详情失败：", e);
         common_vendor.index.showToast({
           title: e.message || "获取失败",
           icon: "none"
@@ -58,10 +59,10 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         return;
       }
       try {
-        common_vendor.index.showLoading({
+        utils_loading.showDelayedLoading({
           title: isEdit.value ? "保存中..." : "创建中..."
         });
-        const noticeObj = common_vendor.tr.importObject("notice");
+        const noticeObj = common_vendor._r.importObject("notice");
         let result;
         if (isEdit.value) {
           result = await noticeObj.update({
@@ -79,7 +80,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
             is_popup: formData.value.is_popup
           });
         }
-        common_vendor.index.hideLoading();
+        utils_loading.hideDelayedLoading();
         if (result.errCode === 0) {
           common_vendor.index.showToast({
             title: isEdit.value ? "保存成功" : "创建成功",
@@ -98,8 +99,8 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           });
         }
       } catch (e) {
-        common_vendor.index.hideLoading();
-        common_vendor.index.__f__("error", "at pages/notice/edit.vue:151", "操作失败：", e);
+        utils_loading.hideDelayedLoading();
+        common_vendor.index.__f__("error", "at pages/notice/edit.vue:152", "操作失败：", e);
         common_vendor.index.showToast({
           title: e.message || "操作失败",
           icon: "none"
@@ -123,16 +124,16 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
     return (_ctx, _cache) => {
       return {
         a: formData.value.title,
-        b: common_vendor.o(($event) => formData.value.title = $event.detail.value),
+        b: common_vendor.o(($event) => formData.value.title = $event.detail.value, "ca"),
         c: -1,
         d: formData.value.content,
-        e: common_vendor.o(($event) => formData.value.content = $event.detail.value),
+        e: common_vendor.o(($event) => formData.value.content = $event.detail.value, "92"),
         f: formData.value.is_published,
-        g: common_vendor.o(onPublishChange),
+        g: common_vendor.o(onPublishChange, "d1"),
         h: formData.value.is_popup,
-        i: common_vendor.o(onPopupChange),
+        i: common_vendor.o(onPopupChange, "d0"),
         j: common_vendor.t(isEdit.value ? "保存修改" : "创建公告"),
-        k: common_vendor.o(submitForm)
+        k: common_vendor.o(submitForm, "37")
       };
     };
   }

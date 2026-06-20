@@ -104,7 +104,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     o: common_vendor.t($props.status === "more" ? $options.contentdownText : $props.status === "loading" ? $options.contentrefreshText : $options.contentnomoreText),
     p: $props.color
   } : {}, {
-    q: common_vendor.o((...args) => $options.onClick && $options.onClick(...args))
+    q: common_vendor.o((...args) => $options.onClick && $options.onClick(...args), "9c")
   });
 }
 const Component = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

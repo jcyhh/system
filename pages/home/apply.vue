@@ -93,6 +93,7 @@
 import { computed, ref } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
 import { useAppStore } from '@/store';
+import { hideDelayedLoading, showDelayedLoading } from '../../utils/loading';
 
 const appStore = useAppStore()
 
@@ -237,7 +238,7 @@ const chooseImage = () => {
 		success: async (res) => {
 			const tempFilePath = res.tempFilePaths[0]
 			
-			uni.showLoading({
+			showDelayedLoading({
 				title: '上传中...'
 			})
 			
@@ -249,14 +250,14 @@ const chooseImage = () => {
 				})
 				
 				formData.value.photo = uploadRes.fileID
-				uni.hideLoading()
+				hideDelayedLoading()
 				
 				uni.showToast({
 					title: '上传成功',
 					icon: 'success'
 				})
 			} catch (e) {
-				uni.hideLoading()
+				hideDelayedLoading()
 				uni.showToast({
 					title: '上传失败',
 					icon: 'none'
@@ -468,7 +469,7 @@ const submit = async () => {
 		subscribedTmpls = await requestSubscribe()
 	}
 	
-	uni.showLoading({
+	showDelayedLoading({
 		title: isEditMode.value ? '修改中...' : '提交中...'
 	})
 	
@@ -490,7 +491,7 @@ const submit = async () => {
 			})
 		}
 		
-		uni.hideLoading()
+		hideDelayedLoading()
 		
 		if (res.errCode === 0) {
 			uni.showModal({
@@ -527,7 +528,7 @@ const submit = async () => {
 			}
 		}
 	} catch (e:any) {
-		uni.hideLoading()
+		hideDelayedLoading()
 		uni.showToast({
 			title: e.message || '提交失败',
 			icon: 'none'
@@ -545,11 +546,11 @@ const cancelQueue = () => {
 		success: async (res) => {
 			if (!res.confirm) return
 			
-			uni.showLoading({ title: '取消中...' })
+			showDelayedLoading({ title: '取消中...' })
 			try {
 				const truckObj = uniCloud.importObject('truck')
 				const result = await truckObj.cancelTask({ id: currentTaskId.value })
-				uni.hideLoading()
+				hideDelayedLoading()
 				
 				if (result.errCode === 0) {
 					uni.showToast({ title: '已取消排队', icon: 'success' })
@@ -560,7 +561,7 @@ const cancelQueue = () => {
 					uni.showToast({ title: result.errMsg || '取消失败', icon: 'none' })
 				}
 			} catch (e: any) {
-				uni.hideLoading()
+				hideDelayedLoading()
 				uni.showToast({ title: e.message || '取消失败', icon: 'none' })
 			}
 		}
